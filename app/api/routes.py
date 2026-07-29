@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-router = APIRouter()
+root_router = APIRouter(tags=["General"])
 
-@router.get("/")
+@root_router.get("/")
 def read_root():
     return {"message": "Welcome to CloudOps AI"}
