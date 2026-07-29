@@ -3,7 +3,7 @@ from _collections_abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from app.api.health import health_router
-from app.api.routes import root_router
+from app.api.routes import router
 from app.core.config import settings
 from app.core.logging import get_logger, setup_logging
 
@@ -34,5 +34,5 @@ app = FastAPI(
 )
 
 #Routers added to app
-app.include_router(root_router)
+app.include_router(router)
 app.include_router(health_router)

@@ -1,0 +1,9 @@
+# Web framework
+fastapi==0.140.13
+uvicorn==0.52.0
+
+# Configuration
+pydantic-settings==2.14.2
+
+# LLM provider
+groq==1.6.0
