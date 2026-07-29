@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     app_description: str = "AI-powered knowledge assistant for Cloud Operations."
     app_version: str = "0.1.0"
     debug: bool = False
-
+    groq_api_key: str
+    groq_model: str = "openai/gpt-oss-20b"
 
 settings = Settings()
