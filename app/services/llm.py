@@ -45,7 +45,9 @@ async def generate_response(prompt: str) -> str:
     response = chat_completion.choices[0].message.content
 
     if response is None:
-        raise ValueError("Groq has return an empty response")
+        raise LLMServiceException(
+            "The LLM provider failed to generate a response"
+        )
 
     logger.info("LLM response generated succesfully")
 
