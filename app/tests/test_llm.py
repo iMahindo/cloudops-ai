@@ -1,16 +1,10 @@
-import json
 import pytest
-from fastapi.testclient import TestClient
 from types import SimpleNamespace
 
 
 from app.core.exceptions import LLMServiceException
-from app.main import app
 from app.services import llm
 from app.services.llm import generate_response
-
-#create the client
-client = TestClient(app)
 
 #Define the tests
 @pytest.mark.asyncio
