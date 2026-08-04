@@ -13,5 +13,7 @@ pytest==9.1.1
 httpx==0.28.1
 pytest-asyncio==1.4.0
 
-# Vector database
-qdrant-client==1.18.0
+#langchain
+langchain-google-genai=4.3.2
+langchain-text-splitters=4.3.2
+langchain-qdrant=1.1.0

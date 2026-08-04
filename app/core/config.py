@@ -15,14 +15,24 @@ class Settings(BaseSettings):
     app_description: str = "AI-powered knowledge assistant for Cloud Operations."
     app_version: str = "0.1.0"
     debug: bool = False
+    
     #GROQ API
     groq_api_key: str
     groq_model: str = "openai/gpt-oss-20b"
+
+    # DOCUMENT PROCESSING
+    chunk_size: int = 1000
+    chunk_overlap: int = 200
 
     #QDRANT API
     qdrant_host: str
     qdrant_port: int
     qdrant_collection: str
+
+    #GEMINI API
+    gemini_api_key: str
+    gemini_embedding_model: str = "gemini-embedding-001"
+    gemini_embedding_dimension: int = 768
     
 
 settings = Settings()
