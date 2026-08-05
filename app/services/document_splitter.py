@@ -14,7 +14,7 @@ text_splitter = RecursiveCharacterTextSplitter(
     chunk_overlap=settings.chunk_overlap,
 )
 
-def split_documents(texts: list[str]) -> list[Document]:
+def split_documents(texts: list[str], metadatas: list[dict] | None = None) -> list[Document]:
     try:
         logger.info("Splitting %s documents into chunks",len(texts))
 
@@ -23,8 +23,13 @@ def split_documents(texts: list[str]) -> list[Document]:
 
         if any(not text.strip() for text in texts):
             raise ValueError("Texts cannot contain empty values")
+
+        if metadatas is not None and len(metadatas) != len(texts):
+            raise ValueError(
+                "Metadatas must have the same length as texts"
+            )
         
-        return text_splitter.create_documents(texts)
+        return text_splitter.create_documents(texts, metadatas=metadatas)
     except Exception as exc:
         logger.exception("Failed to split documents")
         raise DocumentProcessingException("Failed to split documents") from exc
