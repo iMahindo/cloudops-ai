@@ -176,3 +176,50 @@ def test_get_vector_store_raises_vector_database_exception_when_creation_fails(m
     with pytest.raises(VectorDatabaseException):
         qdrant.get_vector_store()
 
+def test_delete_document_chunks_uses_document_id_filter(monkeypatch) -> None:
+    captured = {}
+
+    def mock_delete(collection_name,points_selector,wait):
+        captured["collection_name"] = collection_name
+        captured["points_selector"] = points_selector
+        captured["wait"] = wait
+
+    monkeypatch.setattr(
+        qdrant,
+        "client",
+        SimpleNamespace(
+            delete=mock_delete,
+        )
+    )
+
+    qdrant.delete_document_chunks(
+        "document-123"
+    )
+
+    assert captured["collection_name"] == settings.qdrant_collection
+    assert captured["wait"] is True
+
+    selector = captured["points_selector"]
+    condition = selector.filter.must[0]
+
+    assert condition.key == "metadata.document_id"
+    assert condition.match.value == "document-123"
+
+def test_delete_document_chunks_raises_vector_database_exception_when_delete_fails(monkeypatch) -> None:
+    def mock_delete(*args, **kwargs):
+        raise RuntimeError(
+            "Qdrant delete failed"
+        )
+
+    monkeypatch.setattr(
+        qdrant,
+        "client",
+        SimpleNamespace(
+            delete=mock_delete,
+        )
+    )
+
+    with pytest.raises(VectorDatabaseException):
+        qdrant.delete_document_chunks(
+            "document-123"
+        )

@@ -1,5 +1,5 @@
 from qdrant_client import QdrantClient
-from qdrant_client.models import VectorParams, Distance
+from qdrant_client.models import VectorParams, Distance, Filter, FilterSelector, FieldCondition, MatchValue
 from langchain_qdrant import QdrantVectorStore
 
 from app.core.config import settings
@@ -61,6 +61,51 @@ def create_knowledge_collection() -> None:
         logger.exception("Error creating the collection %s", settings.qdrant_collection)
         raise VectorDatabaseException(
             "Failed to ensure vector collection"
+        ) from exc
+
+#delete every chunk for an specific document id
+def delete_document_chunks(document_id: str) -> None:
+    try:
+        logger.info(
+            "Deleting existing chunks for document %s",
+            document_id,
+        )
+
+        #the condition for the qdrant request
+        condition = FieldCondition(
+            key="metadata.document_id",
+            match=MatchValue(
+                value=document_id
+            )
+        )
+
+        #create the filter
+        document_filter = Filter(
+            must=[condition]
+        )
+
+        points_selector = FilterSelector(
+            filter=document_filter
+        )
+
+        #delete the chunks (documents)
+        client.delete(
+            collection_name=settings.qdrant_collection,
+            points_selector=points_selector,
+            wait=True
+        )
+
+        logger.info(
+            "Existing chunks deleted for document %s",
+            document_id
+        )
+    except Exception as exc:
+        logger.exception(
+            "Failed to delete chunks for document %s",
+            document_id
+        )
+        raise VectorDatabaseException(
+            "Failed to delete existing document chunks"
         ) from exc
 
 def get_vector_store() -> QdrantVectorStore:

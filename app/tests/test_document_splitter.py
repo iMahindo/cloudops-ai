@@ -43,7 +43,7 @@ def test_split_documents_raises_when_text_contains_only_spaces() -> None:
         )
 
 def test_split_documents_raises_document_processing_exception_when_splitter_fails(monkeypatch) -> None:
-    def mock_create_documents(texts):
+    def mock_create_documents(texts, metadatas=None):
         raise RuntimeError("Splitter unavailable")
 
     monkeypatch.setattr(
@@ -59,4 +59,37 @@ def test_split_documents_raises_document_processing_exception_when_splitter_fail
             [
                 "Document content"
             ]
+        )
+
+def test_split_documents_preserves_metadata() -> None:
+    result = document_splitter.split_documents(
+        [
+            "Document content",
+        ],
+        metadatas=[
+            {
+                "source": "document.md",
+                "source_type": "markdown",
+            }
+        ],
+    )
+
+    assert len(result) > 0
+    assert result[0].metadata == {
+        "source": "document.md",
+        "source_type": "markdown",
+    }
+
+def test_split_documents_raises_when_metadata_length_does_not_match_texts() -> None:
+    with pytest.raises(DocumentProcessingException):
+        document_splitter.split_documents(
+            [
+                "First document",
+                "Second document",
+            ],
+            metadatas=[
+                {
+                    "source": "first.md"
+                }
+            ],
         )
