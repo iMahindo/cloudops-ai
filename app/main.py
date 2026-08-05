@@ -1,11 +1,12 @@
 from fastapi import FastAPI
-from _collections_abc import AsyncIterator
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from app.api.health import health_router
 from app.api.routes import router
 from app.core.config import settings
 from app.core.logging import get_logger, setup_logging
+from app.services.qdrant import create_knowledge_collection
 
 #initialize the logger
 setup_logging()
@@ -18,6 +19,17 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         "%s Application started in %s environment",
         settings.app_name,
         settings.environment,
+    )
+
+    logger.info(
+        "Initializing Qdrant collection: %s",
+        settings.qdrant_collection
+    )
+    #create the collection if not exist
+    create_knowledge_collection()
+
+    logger.info(
+        "Qdrant collection initialized successfully"
     )
 
     yield

@@ -12,3 +12,6 @@ class DocumentProcessingException(Exception):
 
 class DocumentIngestionException(Exception):
     """Raised when document ingestion fails."""
+
+class KnowledgeSearchException(Exception):
+    """Raised when knoledge search fails."""    
