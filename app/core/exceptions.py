@@ -14,4 +14,7 @@ class DocumentIngestionException(Exception):
     """Raised when document ingestion fails."""
 
 class KnowledgeSearchException(Exception):
-    """Raised when knoledge search fails."""    
+    """Raised when knoledge search fails."""
+
+class RAGServiceException(Exception):
+    """Raised when RAG service fails."""
