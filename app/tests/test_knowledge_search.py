@@ -6,18 +6,18 @@ from langchain_core.documents import Document
 from app.services import knowledge_search
 from app.core.exceptions import KnowledgeSearchException
 
-
-def test_search_knowledge_rejects_empty_query() -> None:
+@pytest.mark.asyncio
+async def test_search_knowledge_rejects_empty_query() -> None:
     with pytest.raises(KnowledgeSearchException, match="Search query cannot be empty"):
-        knowledge_search.search_knowledge("   ", limit=5)
+        await knowledge_search.search_knowledge("   ", limit=5)
 
-
-def test_search_knowledge_rejects_limit_less_than_one() -> None:
+@pytest.mark.asyncio
+async def test_search_knowledge_rejects_limit_less_than_one() -> None:
     with pytest.raises(KnowledgeSearchException, match="Search limit must be greater than zero"):
-        knowledge_search.search_knowledge("cloud networking", limit=0)
+        await knowledge_search.search_knowledge("cloud networking", limit=0)
 
-
-def test_search_knowledge_returns_results(monkeypatch) -> None:
+@pytest.mark.asyncio
+async def test_search_knowledge_returns_results(monkeypatch) -> None:
     captured_arguments = {}
 
     mock_documents = [
@@ -31,13 +31,13 @@ def test_search_knowledge_returns_results(monkeypatch) -> None:
         ),
     ]
 
-    def mock_similarity_search(query, k):
+    async def mock_asimilarity_search(query, k):
         captured_arguments["query"] = query
         captured_arguments["k"] = k
         return mock_documents
 
     mock_vector_store = SimpleNamespace(
-        similarity_search=mock_similarity_search,
+        asimilarity_search=mock_asimilarity_search,
     )
 
     monkeypatch.setattr(
@@ -46,7 +46,7 @@ def test_search_knowledge_returns_results(monkeypatch) -> None:
         lambda: mock_vector_store,
     )
 
-    response = knowledge_search.search_knowledge("VPC peering", limit=2)
+    response = await knowledge_search.search_knowledge("VPC peering", limit=2)
 
     assert captured_arguments == {"query": "VPC peering", "k": 2}
     assert len(response.results) == 2
@@ -61,10 +61,14 @@ def test_search_knowledge_returns_results(monkeypatch) -> None:
         "source": "k8s.md",
     }
 
-
-def test_search_knowledge_returns_empty_results_when_no_documents_found(monkeypatch) -> None:
+@pytest.mark.asyncio
+async def test_search_knowledge_returns_empty_results_when_no_documents_found(monkeypatch) -> None:
+    
+    async def mock_asimilarity_search(query, k):
+        return []
+    
     mock_vector_store = SimpleNamespace(
-        similarity_search=lambda query, k: [],
+        asimilarity_search=mock_asimilarity_search,
     )
 
     monkeypatch.setattr(
@@ -73,12 +77,12 @@ def test_search_knowledge_returns_empty_results_when_no_documents_found(monkeypa
         lambda: mock_vector_store,
     )
 
-    response = knowledge_search.search_knowledge("unknown topic", limit=5)
+    response = await knowledge_search.search_knowledge("unknown topic", limit=5)
 
     assert response.results == []
 
-
-def test_search_knowledge_raises_knowledge_search_exception_when_vector_store_fails(monkeypatch) -> None:
+@pytest.mark.asyncio
+async def test_search_knowledge_raises_knowledge_search_exception_when_vector_store_fails(monkeypatch) -> None:
     def mock_get_vector_store():
         raise RuntimeError("Qdrant is not available")
 
@@ -89,15 +93,15 @@ def test_search_knowledge_raises_knowledge_search_exception_when_vector_store_fa
     )
 
     with pytest.raises(KnowledgeSearchException, match="Failed to search knowledge base"):
-        knowledge_search.search_knowledge("cloud networking", limit=5)
+        await knowledge_search.search_knowledge("cloud networking", limit=5)
 
-
-def test_search_knowledge_raises_knowledge_search_exception_when_similarity_search_fails(monkeypatch) -> None:
-    def mock_similarity_search(query, k):
+@pytest.mark.asyncio
+async def test_search_knowledge_raises_knowledge_search_exception_when_asimilarity_search_fails(monkeypatch) -> None:
+    async def mock_similarity_search(query, k):
         raise RuntimeError("Similarity search failed")
 
     mock_vector_store = SimpleNamespace(
-        similarity_search=mock_similarity_search,
+        asimilarity_search=mock_similarity_search,
     )
 
     monkeypatch.setattr(
@@ -107,4 +111,4 @@ def test_search_knowledge_raises_knowledge_search_exception_when_similarity_sear
     )
 
     with pytest.raises(KnowledgeSearchException, match="Failed to search knowledge base"):
-        knowledge_search.search_knowledge("cloud networking", limit=5)
+        await knowledge_search.search_knowledge("cloud networking", limit=5)

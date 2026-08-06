@@ -15,6 +15,7 @@ class KnowledgeSearchRequest(BaseModel):
     )
 
 # Individual search result
+# metadata={"document_id", "source"},
 class KnowledgeSearchResult(BaseModel):
     content: str
     metadata: dict[str, Any]

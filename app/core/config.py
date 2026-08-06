@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     gemini_api_key: str
     gemini_embedding_model: str = "gemini-embedding-001"
     gemini_embedding_dimension: int = 768
+
+    #RAG CONFIG
+    rag_retrieval_limit: int = 5
     
 
 settings = Settings()

@@ -6,7 +6,7 @@ from app.services.qdrant import get_vector_store
 
 logger = get_logger(__name__)
 
-def search_knowledge(query: str,limit: int) -> KnowledgeSearchResponse:
+async def search_knowledge(query: str,limit: int) -> KnowledgeSearchResponse:
     if not query.strip():
         raise KnowledgeSearchException(
             "Search query cannot be empty"
@@ -20,7 +20,7 @@ def search_knowledge(query: str,limit: int) -> KnowledgeSearchResponse:
     try:
         vector_store = get_vector_store()
 
-        documents = vector_store.similarity_search(query=query, k=limit)
+        documents = await vector_store.asimilarity_search(query=query, k=limit)
 
         results = []
         for document in documents:
