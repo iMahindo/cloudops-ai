@@ -13,3 +13,6 @@ class RAGSource(BaseModel):
 class RAGResponse(BaseModel):
     answer: str
     sources: list[RAGSource]
+
+class RAGQuestionClassification(BaseModel):
+    requires_retrieval: bool
