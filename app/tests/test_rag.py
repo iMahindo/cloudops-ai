@@ -1,46 +1,51 @@
 import pytest
-from langchain_core.language_models.fake_chat_models import FakeListChatModel
 
-from app.core.config import settings
 from app.core.exceptions import RAGServiceException
-from app.schemas.knowledge_search import KnowledgeSearchResponse, KnowledgeSearchResult
+from app.schemas.rag import RAGSource
 from app.services import rag
 
 
 @pytest.mark.asyncio
 async def test_generate_rag_response_rejects_empty_question() -> None:
-    with pytest.raises(RAGServiceException, match="Question cannot be empty"):
+    with pytest.raises(
+        RAGServiceException,
+        match="Question cannot be empty",
+    ):
         await rag.generate_rag_response("   ")
 
 
 @pytest.mark.asyncio
 async def test_generate_rag_response_returns_answer_and_sources(monkeypatch) -> None:
-    async def mock_search_knowledge(query: str, limit: int) -> KnowledgeSearchResponse:
-        return KnowledgeSearchResponse(
-            results=[
-                KnowledgeSearchResult(
-                    content="How to configure VPC peering",
-                    metadata={"file_name": "networking.md", "chunk_index": 0},
-                ),
-                KnowledgeSearchResult(
-                    content="Kubernetes ingress troubleshooting",
-                    metadata={"file_name": "k8s.md", "chunk_index": 2},
-                ),
-            ]
-        )
+    class FakeRAGGraph:
+        async def ainvoke(self, payload):
+            assert payload == {
+                "question": "How do I configure VPC peering?"
+            }
+
+            return {
+                "answer": "Generated RAG answer",
+                "sources": [
+                    RAGSource(
+                        file_name="networking.md",
+                        chunk_index=0,
+                    ),
+                    RAGSource(
+                        file_name="k8s.md",
+                        chunk_index=2,
+                    ),
+                ],
+                "is_valid": True,
+            }
 
     monkeypatch.setattr(
         rag,
-        "search_knowledge",
-        mock_search_knowledge,
-    )
-    monkeypatch.setattr(
-        rag,
-        "llm",
-        FakeListChatModel(responses=["Generated RAG answer"]),
+        "rag_graph",
+        FakeRAGGraph(),
     )
 
-    response = await rag.generate_rag_response("How do I configure VPC peering?")
+    response = await rag.generate_rag_response(
+        "How do I configure VPC peering?"
+    )
 
     assert response.answer == "Generated RAG answer"
     assert len(response.sources) == 2
@@ -51,80 +56,60 @@ async def test_generate_rag_response_returns_answer_and_sources(monkeypatch) -> 
 
 
 @pytest.mark.asyncio
-async def test_generate_rag_response_passes_question_and_limit_to_search(monkeypatch) -> None:
-    captured_arguments = {}
-
-    async def mock_search_knowledge(query: str, limit: int) -> KnowledgeSearchResponse:
-        captured_arguments["query"] = query
-        captured_arguments["limit"] = limit
-        return KnowledgeSearchResponse(results=[])
+async def test_generate_rag_response_returns_empty_sources_for_direct_answer(monkeypatch) -> None:
+    class FakeRAGGraph:
+        async def ainvoke(self, payload):
+            return {
+                "answer": "HTTP 500 means Internal Server Error.",
+                "is_valid": True,
+            }
 
     monkeypatch.setattr(
         rag,
-        "search_knowledge",
-        mock_search_knowledge,
-    )
-    monkeypatch.setattr(
-        rag,
-        "llm",
-        FakeListChatModel(responses=["Answer without context"]),
+        "rag_graph",
+        FakeRAGGraph(),
     )
 
-    await rag.generate_rag_response("What is CloudOps?")
+    response = await rag.generate_rag_response(
+        "What does HTTP 500 mean?"
+    )
 
-    assert captured_arguments == {
-        "query": "What is CloudOps?",
-        "limit": settings.rag_retrieval_limit,
-    }
+    assert response.answer == "HTTP 500 means Internal Server Error."
+    assert response.sources == []
 
 
 @pytest.mark.asyncio
-async def test_generate_rag_response_raises_rag_service_exception_when_search_fails(
-    monkeypatch,
-) -> None:
-    async def mock_search_knowledge(query: str, limit: int) -> KnowledgeSearchResponse:
-        raise RuntimeError("Knowledge search failed")
+async def test_generate_rag_response_raises_when_graph_result_is_invalid(monkeypatch) -> None:
+    class FakeRAGGraph:
+        async def ainvoke(self, payload):
+            return {
+                "answer": "",
+                "is_valid": False,
+            }
 
     monkeypatch.setattr(
         rag,
-        "search_knowledge",
-        mock_search_knowledge,
+        "rag_graph",
+        FakeRAGGraph(),
     )
 
     with pytest.raises(
         RAGServiceException,
-        match="Failed to generate RAG response",
+        match="The generated RAG response is invalid",
     ):
         await rag.generate_rag_response("What is CloudOps?")
 
 
 @pytest.mark.asyncio
-async def test_generate_rag_response_raises_rag_service_exception_when_llm_fails(
-    monkeypatch,
-) -> None:
-    async def mock_search_knowledge(query: str, limit: int) -> KnowledgeSearchResponse:
-        return KnowledgeSearchResponse(
-            results=[
-                KnowledgeSearchResult(
-                    content="Some context",
-                    metadata={"file_name": "guide.md", "chunk_index": 1},
-                )
-            ]
-        )
-
-    class FailingLLM(FakeListChatModel):
-        async def ainvoke(self, *args, **kwargs):
-            raise RuntimeError("LLM provider unavailable")
+async def test_generate_rag_response_wraps_unexpected_graph_failure(monkeypatch) -> None:
+    class FailingRAGGraph:
+        async def ainvoke(self, payload):
+            raise RuntimeError("Graph execution failed")
 
     monkeypatch.setattr(
         rag,
-        "search_knowledge",
-        mock_search_knowledge,
-    )
-    monkeypatch.setattr(
-        rag,
-        "llm",
-        FailingLLM(responses=[]),
+        "rag_graph",
+        FailingRAGGraph(),
     )
 
     with pytest.raises(
