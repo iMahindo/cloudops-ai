@@ -2,35 +2,40 @@ import pytest
 from types import SimpleNamespace
 
 from langchain_core.documents import Document
-from hashlib import sha256
 
-from app.services import document_ingestion
 from app.core.exceptions import DocumentIngestionException
+from app.schemas.knowledge import (
+    FailedDocument,
+    IngestionResult,
+    KnowledgeDocument,
+)
+from app.services import document_ingestion
 
-def test_ingest_markdown_file_loads_splits_and_stores_documents(monkeypatch) -> None:
+
+def test_ingest_document_splits_and_stores_documents(monkeypatch) -> None:
     stored_documents = []
 
-    def mock_load_markdown_file(path):
-        return "Markdown content"
+    document = KnowledgeDocument(
+        document_id="document-123",
+        content="Document content",
+        metadata={
+            "document_id": "document-123",
+            "source": "test-source",
+        },
+    )
 
     def mock_split_documents(texts, metadatas=None):
         return [
             Document(
-                page_content="Chunk content"
+                page_content="Chunk content",
+                metadata=metadatas[0].copy(),
             )
         ]
 
     mock_vector_store = SimpleNamespace(
-        add_documents=lambda documents: stored_documents.extend(documents)
-    )
-
-    def mock_get_vector_store():
-        return mock_vector_store
-
-    monkeypatch.setattr(
-        document_ingestion,
-        "load_markdown_file",
-        mock_load_markdown_file,
+        add_documents=lambda documents: stored_documents.extend(
+            documents
+        )
     )
 
     monkeypatch.setattr(
@@ -42,7 +47,7 @@ def test_ingest_markdown_file_loads_splits_and_stores_documents(monkeypatch) -> 
     monkeypatch.setattr(
         document_ingestion,
         "get_vector_store",
-        mock_get_vector_store,
+        lambda: mock_vector_store,
     )
 
     monkeypatch.setattr(
@@ -51,115 +56,36 @@ def test_ingest_markdown_file_loads_splits_and_stores_documents(monkeypatch) -> 
         lambda document_id: None,
     )
 
-    document_ingestion.ingest_markdown_file(
-        "guide.md"
+    chunk_count = document_ingestion.ingest_document(
+        document
     )
 
+    assert chunk_count == 1
     assert len(stored_documents) == 1
     assert stored_documents[0].page_content == "Chunk content"
 
-def test_ingest_markdown_file_passes_loaded_content_to_splitter(monkeypatch) -> None:
-    captured_texts = []
 
-    monkeypatch.setattr(
-        document_ingestion,
-        "load_markdown_file",
-        lambda path: "Markdown content",
-    )
-
-    def mock_split_documents(texts, metadatas=None):
-        captured_texts.extend(texts)
-
-        return [
-            Document(
-                page_content="Chunk"
-            )
-        ]
-
-    monkeypatch.setattr(
-        document_ingestion,
-        "split_documents",
-        mock_split_documents,
-    )
-
-    monkeypatch.setattr(
-        document_ingestion,
-        "get_vector_store",
-        lambda: SimpleNamespace(
-            add_documents=lambda documents: None
-        ),
-    )
-
-    monkeypatch.setattr(
-        document_ingestion,
-        "delete_document_chunks",
-        lambda document_id: None,
-    )
-
-    document_ingestion.ingest_markdown_file(
-        "guide.md"
-    )
-
-    assert captured_texts == [
-        "Markdown content"
-    ]
-
-def test_ingest_markdown_file_raises_document_ingestion_exception_when_storage_fails(monkeypatch) -> None:
-
-    monkeypatch.setattr(
-        document_ingestion,
-        "load_markdown_file",
-        lambda path: "Markdown content",
-    )
-
-    monkeypatch.setattr(
-        document_ingestion,
-        "split_documents",
-        lambda texts, metadatas=None: [
-            Document(
-                page_content="Chunk"
-            )
-        ],
-    )
-
-    def mock_get_vector_store():
-        raise RuntimeError(
-            "Qdrant unavailable"
-        )
-
-    monkeypatch.setattr(
-        document_ingestion,
-        "get_vector_store",
-        mock_get_vector_store,
-    )
-
-    monkeypatch.setattr(
-        document_ingestion,
-        "delete_document_chunks",
-        lambda document_id: None,
-    )
-
-    with pytest.raises(DocumentIngestionException):
-        document_ingestion.ingest_markdown_file(
-            "guide.md"
-        )
-
-def test_ingest_markdown_file_passes_metadata_to_splitter(monkeypatch,tmp_path) -> None:
-    file_path = tmp_path / "kubernetes.md"
+def test_ingest_document_passes_content_and_metadata_to_splitter(monkeypatch) -> None:
     captured = {}
 
-    monkeypatch.setattr(
-        document_ingestion,
-        "load_markdown_file",
-        lambda path: "Kubernetes document content",
+    document = KnowledgeDocument(
+        document_id="document-123",
+        content="Document content",
+        metadata={
+            "document_id": "document-123",
+            "source": "test-source",
+            "source_type": "test",
+        },
     )
 
     def mock_split_documents(texts, metadatas=None):
         captured["texts"] = texts
         captured["metadatas"] = metadatas
+
         return [
             Document(
-                page_content="Kubernetes document content",
+                page_content="Chunk",
+                metadata=metadatas[0].copy(),
             )
         ]
 
@@ -183,34 +109,33 @@ def test_ingest_markdown_file_passes_metadata_to_splitter(monkeypatch,tmp_path) 
         lambda document_id: None,
     )
 
-    document_ingestion.ingest_markdown_file(file_path)
-
-    normalized_path = str(file_path.resolve())
-
-    expected_document_id = sha256(
-        normalized_path.encode("utf-8")
-    ).hexdigest()
+    document_ingestion.ingest_document(
+        document
+    )
 
     assert captured["texts"] == [
-        "Kubernetes document content"
+        "Document content"
     ]
 
     assert captured["metadatas"] == [
         {
-            "document_id": expected_document_id,
-            "source": normalized_path,
-            "file_name": "kubernetes.md",
-            "source_type": "markdown",
+            "document_id": "document-123",
+            "source": "test-source",
+            "source_type": "test",
         }
     ]
 
-def test_ingest_markdown_file_adds_chunk_position_metadata(monkeypatch) -> None:
+
+def test_ingest_document_adds_chunk_position_metadata(monkeypatch) -> None:
     stored_documents = []
 
-    monkeypatch.setattr(
-        document_ingestion,
-        "load_markdown_file",
-        lambda path: "Markdown content",
+    document = KnowledgeDocument(
+        document_id="document-123",
+        content="Document content",
+        metadata={
+            "document_id": "document-123",
+            "source": "test-source",
+        },
     )
 
     def mock_split_documents(texts, metadatas=None):
@@ -228,7 +153,7 @@ def test_ingest_markdown_file_adds_chunk_position_metadata(monkeypatch) -> None:
                 metadata=metadatas[0].copy(),
             ),
         ]
-    
+
     monkeypatch.setattr(
         document_ingestion,
         "split_documents",
@@ -251,8 +176,8 @@ def test_ingest_markdown_file_adds_chunk_position_metadata(monkeypatch) -> None:
         lambda document_id: None,
     )
 
-    document_ingestion.ingest_markdown_file(
-        "guide.md"
+    document_ingestion.ingest_document(
+        document
     )
 
     assert stored_documents[0].metadata["chunk_index"] == 0
@@ -260,156 +185,21 @@ def test_ingest_markdown_file_adds_chunk_position_metadata(monkeypatch) -> None:
     assert stored_documents[2].metadata["chunk_index"] == 2
 
     assert all(
-        document.metadata["chunk_count"] == 3
-        for document in stored_documents
+        chunk.metadata["chunk_count"] == 3
+        for chunk in stored_documents
     )
 
-def test_ingest_markdown_files_continues_when_one_document_fails(monkeypatch) -> None:
-    processed_paths = []
 
-    def mock_ingest_markdown_file(path):
-        processed_paths.append(str(path))
+def test_ingest_document_deletes_existing_chunks(monkeypatch) -> None:
+    deleted_document_ids = []
 
-        if str(path) == "broken.md":
-            raise DocumentIngestionException(
-                "Failed to ingest document"
-            )
-
-        if str(path) == "first.md":
-            return 2
-
-        return 3
-
-    monkeypatch.setattr(
-        document_ingestion,
-        "ingest_markdown_file",
-        mock_ingest_markdown_file,
-    )
-
-    monkeypatch.setattr(
-        document_ingestion,
-        "delete_document_chunks",
-        lambda document_id: None,
-    )
-
-    result = document_ingestion.ingest_markdown_files(
-        [
-            "first.md",
-            "broken.md",
-            "third.md",
-        ]
-    )
-
-    assert processed_paths == [
-        "first.md",
-        "broken.md",
-        "third.md",
-    ]
-
-    assert isinstance(result,document_ingestion.IngestionResult)
-
-    assert result.documents_processed == 2
-    assert result.chunks_stored == 5
-    assert len(result.failed_documents) == 1
-
-    failed_document = result.failed_documents[0]
-
-    assert isinstance(failed_document,document_ingestion.FailedDocument)
-    assert failed_document.path == "broken.md"
-    assert failed_document.error == "Failed to ingest document"
-
-def test_ingest_markdown_directory_raises_document_ingestion_exception_when_directory_does_not_exist(tmp_path, monkeypatch) -> None:
-    missing_directory = tmp_path / "missing"
-
-    monkeypatch.setattr(
-        document_ingestion,
-        "delete_document_chunks",
-        lambda document_id: None,
-    )
-
-    with pytest.raises(DocumentIngestionException):
-        document_ingestion.ingest_markdown_directory(
-            missing_directory
-        )
-
-def test_ingest_markdown_directory_raises_document_ingestion_exception_when_path_is_not_directory(tmp_path,monkeypatch) -> None:
-    file_path = tmp_path / "guide.md"
-    file_path.write_text(
-        "Markdown content",
-        encoding="utf-8",
-    )
-
-    monkeypatch.setattr(
-        document_ingestion,
-        "delete_document_chunks",
-        lambda document_id: None,
-    )
-
-    with pytest.raises(DocumentIngestionException):
-        document_ingestion.ingest_markdown_directory(
-            file_path
-        )
-
-def test_ingest_markdown_directory_finds_markdown_files_recursively(monkeypatch,tmp_path) -> None:
-    knowledge_directory = tmp_path / "knowledge"
-    networking_directory = knowledge_directory / "networking"
-
-    networking_directory.mkdir(parents=True)
-
-    root_markdown = knowledge_directory / "root.md"
-    nested_markdown = networking_directory / "dns.md"
-    ignored_file = knowledge_directory / "ignored.txt"
-
-    root_markdown.write_text(
-        "Root document",
-        encoding="utf-8",
-    )
-
-    nested_markdown.write_text(
-        "Nested document",
-        encoding="utf-8",
-    )
-
-    ignored_file.write_text(
-        "Ignored content",
-        encoding="utf-8",
-    )
-
-    captured_paths = []
-
-    expected_result = document_ingestion.IngestionResult(
-        documents_processed=2,
-        chunks_stored=4,
-        failed_documents=[],
-    )
-
-    def mock_ingest_markdown_files(paths):
-        captured_paths.extend(paths)
-        return expected_result
-
-    monkeypatch.setattr(
-        document_ingestion,
-        "ingest_markdown_files",
-        mock_ingest_markdown_files,
-    )
-
-    result = document_ingestion.ingest_markdown_directory(knowledge_directory)
-
-    assert set(captured_paths) == {
-        root_markdown,
-        nested_markdown,
-    }
-
-    assert result == expected_result
-
-def test_ingest_markdown_file_deletes_existing_chunks(monkeypatch,tmp_path) -> None:
-    file_path = tmp_path / "guide.md"
-    captured_document_ids = []
-
-    monkeypatch.setattr(
-        document_ingestion,
-        "load_markdown_file",
-        lambda path: "Markdown content",
+    document = KnowledgeDocument(
+        document_id="document-123",
+        content="Document content",
+        metadata={
+            "document_id": "document-123",
+            "source": "test-source",
+        },
     )
 
     monkeypatch.setattr(
@@ -426,7 +216,7 @@ def test_ingest_markdown_file_deletes_existing_chunks(monkeypatch,tmp_path) -> N
     monkeypatch.setattr(
         document_ingestion,
         "delete_document_chunks",
-        lambda document_id: captured_document_ids.append(
+        lambda document_id: deleted_document_ids.append(
             document_id
         ),
     )
@@ -439,27 +229,25 @@ def test_ingest_markdown_file_deletes_existing_chunks(monkeypatch,tmp_path) -> N
         ),
     )
 
-    document_ingestion.ingest_markdown_file(
-        file_path
+    document_ingestion.ingest_document(
+        document
     )
 
-    normalized_path = str(file_path.resolve())
-
-    expected_document_id = sha256(
-        normalized_path.encode("utf-8")
-    ).hexdigest()
-
-    assert captured_document_ids == [
-        expected_document_id
+    assert deleted_document_ids == [
+        "document-123"
     ]
 
-def test_ingest_markdown_file_deletes_before_storing(monkeypatch) -> None:
+
+def test_ingest_document_deletes_before_storing(monkeypatch) -> None:
     operations = []
 
-    monkeypatch.setattr(
-        document_ingestion,
-        "load_markdown_file",
-        lambda path: "Markdown content",
+    document = KnowledgeDocument(
+        document_id="document-123",
+        content="Document content",
+        metadata={
+            "document_id": "document-123",
+            "source": "test-source",
+        },
     )
 
     monkeypatch.setattr(
@@ -491,8 +279,8 @@ def test_ingest_markdown_file_deletes_before_storing(monkeypatch) -> None:
         ),
     )
 
-    document_ingestion.ingest_markdown_file(
-        "guide.md"
+    document_ingestion.ingest_document(
+        document
     )
 
     assert operations == [
@@ -500,23 +288,157 @@ def test_ingest_markdown_file_deletes_before_storing(monkeypatch) -> None:
         "store",
     ]
 
-def test_ingest_markdown_files_returns_empty_result_for_empty_paths(monkeypatch) -> None:
-    def mock_ingest_markdown_file(path):
-        raise AssertionError(
-            "ingest_markdown_file should not be called"
+
+def test_ingest_document_raises_document_ingestion_exception_when_storage_fails(monkeypatch) -> None:
+    document = KnowledgeDocument(
+        document_id="document-123",
+        content="Document content",
+        metadata={
+            "document_id": "document-123",
+            "source": "test-source",
+        },
+    )
+
+    monkeypatch.setattr(
+        document_ingestion,
+        "split_documents",
+        lambda texts, metadatas=None: [
+            Document(
+                page_content="Chunk",
+                metadata=metadatas[0].copy(),
+            )
+        ],
+    )
+
+    monkeypatch.setattr(
+        document_ingestion,
+        "delete_document_chunks",
+        lambda document_id: None,
+    )
+
+    def mock_get_vector_store():
+        raise RuntimeError(
+            "Qdrant unavailable"
         )
 
     monkeypatch.setattr(
         document_ingestion,
-        "ingest_markdown_file",
-        mock_ingest_markdown_file,
+        "get_vector_store",
+        mock_get_vector_store,
     )
 
-    result = document_ingestion.ingest_markdown_files([])
+    with pytest.raises(DocumentIngestionException):
+        document_ingestion.ingest_document(
+            document
+        )
+
+
+def test_ingest_documents_continues_when_one_document_fails(monkeypatch) -> None:
+    processed_document_ids = []
+
+    first_document = KnowledgeDocument(
+        document_id="first",
+        content="First document",
+        metadata={
+            "document_id": "first",
+            "source": "source-first",
+        },
+    )
+
+    broken_document = KnowledgeDocument(
+        document_id="broken",
+        content="Broken document",
+        metadata={
+            "document_id": "broken",
+            "source": "source-broken",
+        },
+    )
+
+    third_document = KnowledgeDocument(
+        document_id="third",
+        content="Third document",
+        metadata={
+            "document_id": "third",
+            "source": "source-third",
+        },
+    )
+
+    def mock_ingest_document(document):
+        processed_document_ids.append(
+            document.document_id
+        )
+
+        if document.document_id == "broken":
+            raise DocumentIngestionException(
+                "Failed to ingest document"
+            )
+
+        if document.document_id == "first":
+            return 2
+
+        return 3
+
+    monkeypatch.setattr(
+        document_ingestion,
+        "ingest_document",
+        mock_ingest_document,
+    )
+
+    result = document_ingestion.ingest_documents(
+        [
+            first_document,
+            broken_document,
+            third_document,
+        ]
+    )
+
+    assert processed_document_ids == [
+        "first",
+        "broken",
+        "third",
+    ]
 
     assert isinstance(
         result,
-        document_ingestion.IngestionResult,
+        IngestionResult,
+    )
+
+    assert result.documents_processed == 2
+    assert result.chunks_stored == 5
+
+    assert len(result.failed_documents) == 1
+
+    failed_document = result.failed_documents[0]
+
+    assert isinstance(
+        failed_document,
+        FailedDocument,
+    )
+
+    assert failed_document.document_id == "broken"
+    assert failed_document.source == "source-broken"
+    assert failed_document.error == "Failed to ingest document"
+
+
+def test_ingest_documents_returns_empty_result_for_empty_documents(monkeypatch) -> None:
+    def mock_ingest_document(document):
+        raise AssertionError(
+            "ingest_document should not be called"
+        )
+
+    monkeypatch.setattr(
+        document_ingestion,
+        "ingest_document",
+        mock_ingest_document,
+    )
+
+    result = document_ingestion.ingest_documents(
+        []
+    )
+
+    assert isinstance(
+        result,
+        IngestionResult,
     )
 
     assert result.documents_processed == 0
