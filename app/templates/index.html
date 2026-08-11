@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="/static/styles.css">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudOps AI</title>
+</head>
+<body>
+    <main class="app">
+        <header class="app-header">
+            <h1>CloudOps AI</h1>
+            <p>Ask questions using your internal knowledge base.</p>
+        </header>
+        <button id="toggle-upload-button" class="upload-toggle">
+            <span id="upload-toggle-icon">＋</span>
+            <span id="upload-toggle-text">Upload document</span>
+        </button>
+        
+        <section id="upload-panel" class="upload hidden">
+            <div>
+                <h2>Knowledge</h2>
+                <p>Upload Markdown documents to the knowledge base.</p>
+            </div>
+        
+            <div class="upload-controls">
+                <input
+                    id="knowledge-file"
+                    type="file"
+                    accept=".md"
+                    class="file-input"
+                >
+        
+                <label for="knowledge-file" class="file-label">
+                    Choose file
+                </label>
+        
+                <span id="selected-file-name" class="selected-file-name">
+                    No file selected
+                </span>
+        
+                <button id="upload-button">
+                    Upload
+                </button>
+            </div>
+        
+            <div id="upload-status"></div>
+        </section>
+        <section class="chat">
+            <div id="messages"></div>
+        </section>
+
+        <section class="composer">
+            <textarea
+                id="question"
+                placeholder="Ask CloudOps AI..."
+            ></textarea>
+
+            <button id="send-button">
+                Send
+            </button>
+        </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

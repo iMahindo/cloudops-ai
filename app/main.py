@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -48,3 +49,9 @@ app = FastAPI(
 #Routers added to app
 app.include_router(router)
 app.include_router(health_router)
+
+app.mount(
+    "/static",
+    StaticFiles(directory="app/static"),
+    name="static",
+)

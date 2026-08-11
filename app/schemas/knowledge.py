@@ -14,3 +14,7 @@ class IngestionResult(BaseModel):
     documents_processed: int
     chunks_stored: int
     failed_documents: list[FailedDocument]
+
+class UploadKnowledgeResponse(BaseModel):
+    file_name: str
+    chunks_stored: int
