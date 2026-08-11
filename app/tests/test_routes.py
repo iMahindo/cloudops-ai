@@ -223,3 +223,99 @@ def test_rag_ask_returns_rag_service_exception(monkeypatch) -> None:
     assert response.json() == {
         "detail": "The RAG service is temporarily unavailable",
     }
+
+def test_upload_knowledge_document_returns_result(monkeypatch) -> None:
+    captured_arguments = {}
+
+    def mock_ingest_uploaded_markdown(file_name: str,content: bytes) -> int:
+        captured_arguments["file_name"] = file_name
+        captured_arguments["content"] = content
+        return 3
+
+    monkeypatch.setattr(
+        routes,
+        "ingest_uploaded_markdown",
+        mock_ingest_uploaded_markdown,
+    )
+
+    response = client.post(
+        "/knowledge/upload",
+        files={
+            "file": (
+                "guide.md",
+                b"# CloudOps Guide",
+                "text/markdown",
+            )
+        },
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "file_name": "guide.md",
+        "chunks_stored": 3,
+    }
+
+    assert captured_arguments == {
+        "file_name": "guide.md",
+        "content": b"# CloudOps Guide",
+    }
+
+def test_upload_knowledge_document_returns_validation_error_when_file_is_missing() -> None:
+    response = client.post(
+        "/knowledge/upload"
+    )
+
+    assert response.status_code == 422
+
+def test_upload_knowledge_document_returns_service_exception(monkeypatch) -> None:
+    def mock_ingest_uploaded_markdown(file_name: str, content: bytes) -> int:
+        raise RuntimeError(
+            "Qdrant unavailable"
+        )
+
+    monkeypatch.setattr(
+        routes,
+        "ingest_uploaded_markdown",
+        mock_ingest_uploaded_markdown,
+    )
+
+    response = client.post(
+        "/knowledge/upload",
+        files={
+            "file": (
+                "guide.md",
+                b"# CloudOps Guide",
+                "text/markdown",
+            )
+        },
+    )
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "The upload service is temporarily unavailable",
+    }
+
+def test_upload_knowledge_document_rejects_unsupported_file_type() -> None:
+    response = client.post(
+        "/knowledge/upload",
+        files={
+            "file": (
+                "guide.txt",
+                b"Plain text content",
+                "text/plain",
+            )
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": "File is not a Markdown file: guide.txt"
+    }
+
+def test_read_root_returns_html() -> None:
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "CloudOps AI" in response.text

@@ -10,7 +10,8 @@ from app.services.knowledge_search import search_knowledge
 
 question_classifier = llm.with_structured_output(
     RAGQuestionClassification,
-    method="json_schema"
+    method="json_schema",
+    strict=True
 )
 
 classification_prompt = ChatPromptTemplate.from_messages(
