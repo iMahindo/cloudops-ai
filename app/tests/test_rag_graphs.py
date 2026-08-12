@@ -102,5 +102,5 @@ async def test_rag_graphs_follows_retrieval_route(monkeypatch):
     )
     assert result["is_valid"] is True
     assert len(result["sources"]) == 1
-    assert result["sources"][0].file_name == "mgs_knowledge.md"
+    assert result["sources"][0].name == "mgs_knowledge.md"
     assert result["sources"][0].chunk_index == 0
