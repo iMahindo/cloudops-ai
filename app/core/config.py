@@ -36,6 +36,9 @@ class Settings(BaseSettings):
 
     #RAG CONFIG
     rag_retrieval_limit: int = 5
+
+    #NOTION API
+    notion_api_key: str
     
 
 settings = Settings()

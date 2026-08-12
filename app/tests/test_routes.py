@@ -154,8 +154,8 @@ def test_rag_ask_returns_results(monkeypatch) -> None:
         return RAGResponse(
             answer = "RAG answer example",
             sources=[
-                RAGSource(file_name = "test.md", chunk_index = 1),
-                RAGSource(file_name = "test2.md", chunk_index = 4)
+                RAGSource(name = "test.md", chunk_index = 1),
+                RAGSource(name = "test2.md", chunk_index = 4)
             ]
         )
     
@@ -180,11 +180,11 @@ def test_rag_ask_returns_results(monkeypatch) -> None:
         "answer": "RAG answer example",
         "sources": [
             {
-                "file_name": "test.md",
+                "name": "test.md",
                 "chunk_index": 1
             },
             {
-                "file_name": "test2.md",
+                "name": "test2.md",
                 "chunk_index": 4
             }
         ]
@@ -319,3 +319,65 @@ def test_read_root_returns_html() -> None:
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     assert "CloudOps AI" in response.text
+
+def test_notion_ingestion_returns_result(monkeypatch) -> None:
+    captured_arguments = {}
+
+    def fake_ingest_notion_page(page_id: str) -> int:
+        captured_arguments["page_id"] = page_id
+        return 3
+
+    monkeypatch.setattr(
+        routes,
+        "ingest_notion_page",
+        fake_ingest_notion_page,
+    )
+
+    response = client.post(
+        "/knowledge/notion",
+        json={
+            "page_id": "page-123",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "page_id": "page-123",
+        "chunks_stored": 3,
+    }
+    assert captured_arguments["page_id"] == "page-123"
+
+def test_notion_ingestion_rejects_empty_page_id() -> None:
+    response = client.post(
+        "/knowledge/notion",
+        json={
+            "page_id": "   ",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": "Notion page ID must not be empty"
+    }
+
+def test_notion_ingestion_returns_503_on_service_error(monkeypatch) -> None:
+    def fake_ingest_notion_page(page_id: str) -> int:
+        raise RuntimeError("Notion unavailable")
+
+    monkeypatch.setattr(
+        routes,
+        "ingest_notion_page",
+        fake_ingest_notion_page,
+    )
+
+    response = client.post(
+        "/knowledge/notion",
+        json={
+            "page_id": "page-123",
+        },
+    )
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "The notion ingestion service is temporarily unavailable"
+    }

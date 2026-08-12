@@ -1,3 +1,4 @@
+from os import name
 import pytest
 from types import SimpleNamespace
 
@@ -107,11 +108,11 @@ async def test_retrieve_context_builds_context_and_sources(monkeypatch):
     assert result["context"] == "First chunk\n\nSecond chunk"
     assert result["sources"] == [
         RAGSource(
-            file_name="runbook.md",
+            name="runbook.md",
             chunk_index=0,
         ),
         RAGSource(
-            file_name="runbook.md",
+            name="runbook.md",
             chunk_index=1,
         ),
     ]

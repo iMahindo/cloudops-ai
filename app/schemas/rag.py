@@ -7,7 +7,7 @@ class RAGRequest(BaseModel):
     )
 
 class RAGSource(BaseModel):
-    file_name: str
+    name: str
     chunk_index: int
 
 class RAGResponse(BaseModel):

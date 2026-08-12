@@ -26,11 +26,11 @@ async def test_generate_rag_response_returns_answer_and_sources(monkeypatch) -> 
                 "answer": "Generated RAG answer",
                 "sources": [
                     RAGSource(
-                        file_name="networking.md",
+                        name="networking.md",
                         chunk_index=0,
                     ),
                     RAGSource(
-                        file_name="k8s.md",
+                        name="k8s.md",
                         chunk_index=2,
                     ),
                 ],
@@ -49,9 +49,9 @@ async def test_generate_rag_response_returns_answer_and_sources(monkeypatch) -> 
 
     assert response.answer == "Generated RAG answer"
     assert len(response.sources) == 2
-    assert response.sources[0].file_name == "networking.md"
+    assert response.sources[0].name == "networking.md"
     assert response.sources[0].chunk_index == 0
-    assert response.sources[1].file_name == "k8s.md"
+    assert response.sources[1].name == "k8s.md"
     assert response.sources[1].chunk_index == 2
 
 

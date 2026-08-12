@@ -105,8 +105,11 @@ async def retrieve_context(state: RAGState) -> dict:
     sources = []
 
     for result in search_response.results:
+        #depends on the source
+        file_name = result.metadata.get("file_name") or result.metadata.get("title") or result.metadata.get("source")
+
         context_parts.append(result.content)
-        result_source = RAGSource(file_name=result.metadata["file_name"], chunk_index=result.metadata["chunk_index"])
+        result_source = RAGSource(name=file_name, chunk_index=result.metadata["chunk_index"])
         sources.append(result_source)
 
     context = "\n\n".join(context_parts)

@@ -5,13 +5,13 @@ from fastapi.responses import FileResponse
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.schemas.rag import RAGRequest, RAGResponse
 from app.schemas.knowledge_search import KnowledgeSearchRequest,KnowledgeSearchResponse
-from app.schemas.knowledge import UploadKnowledgeResponse
+from app.schemas.knowledge import UploadKnowledgeResponse, NotionIngestionRequest, NotionIngestionResponse
 from app.core.exceptions import LLMServiceException, RAGServiceException
 from app.core.exceptions import KnowledgeSearchException
 from app.services.llm import generate_response
 from app.services.knowledge_search import search_knowledge
 from app.services.rag import generate_rag_response
-from app.services.knowledge_ingestion import ingest_uploaded_markdown
+from app.services.knowledge_ingestion import ingest_uploaded_markdown, ingest_notion_page
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 
@@ -86,3 +86,26 @@ async def upload_knowledge_document(file: UploadFile = File(...)) -> UploadKnowl
             status_code = status.HTTP_503_SERVICE_UNAVAILABLE,
             detail = "The upload service is temporarily unavailable"
     )from exc
+
+@router.post("/knowledge/notion", response_model = NotionIngestionResponse)
+def insert_notion_page(request: NotionIngestionRequest) -> NotionIngestionResponse:
+    try:
+        if not request.page_id.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Notion page ID must not be empty",
+            )
+        
+        chunks_stored = ingest_notion_page(page_id=request.page_id)
+
+        return NotionIngestionResponse(
+            page_id=request.page_id,
+            chunks_stored = chunks_stored 
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException (
+            status_code = status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail = "The notion ingestion service is temporarily unavailable"
+    )from exc 

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class KnowledgeDocument(BaseModel):
     document_id: str
@@ -17,4 +17,13 @@ class IngestionResult(BaseModel):
 
 class UploadKnowledgeResponse(BaseModel):
     file_name: str
+    chunks_stored: int
+
+class NotionIngestionRequest(BaseModel):
+    page_id: str = Field (
+        min_length = 1
+    )
+
+class NotionIngestionResponse(BaseModel):
+    page_id: str
     chunks_stored: int

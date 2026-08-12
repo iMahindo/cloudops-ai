@@ -108,3 +108,38 @@ def test_ingest_local_markdown_directory_propagates_source_error(monkeypatch) ->
         knowledge_ingestion.ingest_local_markdown_directory(
             "missing"
         )
+
+def test_ingest_notion_page_uses_shared_ingestion_pipeline(monkeypatch) -> None:
+    document = KnowledgeDocument(
+        document_id="page-123",
+        content="Contenido de Notion",
+        metadata={
+            "document_id": "page-123",
+            "source": "notion://page-123",
+            "title": "Test page",
+            "source_type": "notion",
+        },
+    )
+
+    monkeypatch.setattr(
+        knowledge_ingestion,
+        "load_notion_page",
+        lambda page_id: document,
+    )
+
+    received_documents = []
+    
+    def fake_ingest_document(received_document):
+        received_documents.append(received_document)
+        return 4
+    
+    monkeypatch.setattr(
+        knowledge_ingestion,
+        "ingest_document",
+        fake_ingest_document,
+    )
+
+    result = knowledge_ingestion.ingest_notion_page("page-123")
+
+    assert result == 4
+    assert received_documents == [document]

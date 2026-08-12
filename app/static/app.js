@@ -103,7 +103,7 @@ sendButton.addEventListener("click", async () => {
                 sourceElement.className = "source-item";
 
                 sourceElement.textContent =
-                    `${source.file_name} · chunk ${source.chunk_index}`;
+                    `${source.name} · chunk ${source.chunk_index}`;
 
                 sourcesContainer.appendChild(sourceElement);
             });
