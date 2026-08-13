@@ -5,8 +5,10 @@ from contextlib import asynccontextmanager
 
 from app.api.health import health_router
 from app.api.routes import router
+from app.api.metrics import metrics_router
 from app.core.config import settings
 from app.core.logging import get_logger, setup_logging
+from app.middleware.request_context import request_context_middleware
 from app.services.qdrant import create_knowledge_collection
 
 #initialize the logger
@@ -49,9 +51,13 @@ app = FastAPI(
 #Routers added to app
 app.include_router(router)
 app.include_router(health_router)
+app.include_router(metrics_router)
 
 app.mount(
     "/static",
     StaticFiles(directory="app/static"),
     name="static",
 )
+
+#add the middleware for http requests
+app.middleware("http")(request_context_middleware)

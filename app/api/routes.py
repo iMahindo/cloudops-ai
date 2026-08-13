@@ -22,6 +22,10 @@ def read_root():
     #return a html
     return FileResponse(TEMPLATES_DIR / "index.html")
 
+@router.get("/test-error")
+def test_error():
+    raise RuntimeError("Test error")
+
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
     try:
