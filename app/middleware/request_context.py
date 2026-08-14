@@ -1,6 +1,7 @@
 from fastapi import Request
 from uuid import uuid4
 from time import perf_counter
+from opentelemetry import trace
 
 from structlog.contextvars import bind_contextvars, clear_contextvars
 from app.core.logging import get_logger
@@ -13,7 +14,17 @@ async def request_context_middleware(request: Request, call_next):
 
     request_id = str(uuid4())
 
-    bind_contextvars(request_id=request_id)
+    #get the current span and set the request_id as attribute
+    span = trace.get_current_span()
+    span.set_attribute("request_id", request_id)
+
+    #get trace_id to set in the context for logging
+    span_context = span.get_span_context()
+    trace_id = span_context.trace_id
+    #format to hex because is an int
+    trace_id = format(span_context.trace_id, "032x")
+
+    bind_contextvars(request_id=request_id,trace_id=trace_id)
 
     #calculate the duration
     start_time = perf_counter()

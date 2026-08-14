@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from app.api.health import health_router
 from app.api.routes import router
@@ -10,9 +11,13 @@ from app.core.config import settings
 from app.core.logging import get_logger, setup_logging
 from app.middleware.request_context import request_context_middleware
 from app.services.qdrant import create_knowledge_collection
+from app.observability.tracing import setup_tracing
 
 #initialize the logger
 setup_logging()
+
+#initialize the tracing
+setup_tracing()
 
 logger = get_logger(__name__)
 
@@ -52,6 +57,9 @@ app = FastAPI(
 app.include_router(router)
 app.include_router(health_router)
 app.include_router(metrics_router)
+
+#add tracing and intrumentor
+FastAPIInstrumentor.instrument_app(app, excluded_urls="/metrics") #exclude prometheus metrics call
 
 app.mount(
     "/static",

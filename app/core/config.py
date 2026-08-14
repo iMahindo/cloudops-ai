@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     debug: bool = False
     
+    #exporter OTLP endpoint
+    otlp_traces_endpoint: str
+
     #GROQ API
     groq_api_key: str
     groq_model: str = "openai/gpt-oss-20b"
