@@ -59,7 +59,7 @@ def ingest_document(document: KnowledgeDocument) -> int:
         #incress the total errors for label source_type
         KNOWLEDGE_INGESTIONS_FAILURES_TOTAL.labels(
             source_type=source_type
-        ).inc(chunk_count)
+        ).inc()
 
         raise DocumentIngestionException(
             "Failed to ingest document"

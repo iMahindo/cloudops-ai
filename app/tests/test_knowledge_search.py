@@ -112,3 +112,131 @@ async def test_search_knowledge_raises_knowledge_search_exception_when_asimilari
 
     with pytest.raises(KnowledgeSearchException, match="Failed to search knowledge base"):
         await knowledge_search.search_knowledge("cloud networking", limit=5)
+
+
+@pytest.mark.asyncio
+async def test_search_knowledge_updates_metrics_on_success(monkeypatch) -> None:
+    calls = SimpleNamespace(
+        total=0,
+        failures=0,
+        duration=0,
+    )
+
+    monkeypatch.setattr(
+        knowledge_search,
+        "KNOWLEDGE_SEARCH_TOTAL",
+        SimpleNamespace(
+            inc=lambda: setattr(
+                calls,
+                "total",
+                calls.total + 1,
+            )
+        ),
+    )
+
+    monkeypatch.setattr(
+        knowledge_search,
+        "KNOWLEDGE_SEARCH_FAILURES_TOTAL",
+        SimpleNamespace(
+            inc=lambda: setattr(
+                calls,
+                "failures",
+                calls.failures + 1,
+            )
+        ),
+    )
+
+    monkeypatch.setattr(
+        knowledge_search,
+        "KNOWLEDGE_SEARCH_DURATION_SECONDS",
+        SimpleNamespace(
+            observe=lambda value: setattr(
+                calls,
+                "duration",
+                calls.duration + 1,
+            )
+        ),
+    )
+
+    async def mock_similarity_search(query, k):
+        return []
+
+    monkeypatch.setattr(
+        knowledge_search,
+        "get_vector_store",
+        lambda: SimpleNamespace(
+            asimilarity_search=mock_similarity_search,
+        ),
+    )
+
+    await knowledge_search.search_knowledge(
+        "cloud networking",
+        limit=5,
+    )
+
+    assert calls.total == 1
+    assert calls.failures == 0
+    assert calls.duration == 1
+
+@pytest.mark.asyncio
+async def test_search_knowledge_updates_metrics_on_failure(monkeypatch) -> None:
+    calls = SimpleNamespace(
+        total=0,
+        failures=0,
+        duration=0,
+    )
+
+    monkeypatch.setattr(
+        knowledge_search,
+        "KNOWLEDGE_SEARCH_TOTAL",
+        SimpleNamespace(
+            inc=lambda: setattr(
+                calls,
+                "total",
+                calls.total + 1,
+            )
+        ),
+    )
+
+    monkeypatch.setattr(
+        knowledge_search,
+        "KNOWLEDGE_SEARCH_FAILURES_TOTAL",
+        SimpleNamespace(
+            inc=lambda: setattr(
+                calls,
+                "failures",
+                calls.failures + 1,
+            )
+        ),
+    )
+
+    monkeypatch.setattr(
+        knowledge_search,
+        "KNOWLEDGE_SEARCH_DURATION_SECONDS",
+        SimpleNamespace(
+            observe=lambda value: setattr(
+                calls,
+                "duration",
+                calls.duration + 1,
+            )
+        ),
+    )
+
+    def mock_get_vector_store():
+        raise RuntimeError("Qdrant unavailable")
+
+    monkeypatch.setattr(
+        knowledge_search,
+        "get_vector_store",
+        mock_get_vector_store,
+    )
+
+    with pytest.raises(KnowledgeSearchException):
+        await knowledge_search.search_knowledge(
+            "cloud networking",
+            limit=5,
+        )
+
+    assert calls.total == 1
+    assert calls.failures == 1
+    assert calls.duration == 1
