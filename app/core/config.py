@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     
     #APP CONFIG
     app_name: str = "CloudOps AI"
+    service_name: str = "cloudops-ai"
     environment: str = "development"
     app_description: str = "AI-powered knowledge assistant for Cloud Operations."
     app_version: str = "0.1.0"

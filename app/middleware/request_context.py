@@ -20,44 +20,41 @@ async def request_context_middleware(request: Request, call_next):
 
     #get trace_id to set in the context for logging
     span_context = span.get_span_context()
-    trace_id = span_context.trace_id
-    #format to hex because is an int
-    trace_id = format(span_context.trace_id, "032x")
 
-    bind_contextvars(request_id=request_id,trace_id=trace_id)
+    if span_context.is_valid:
+        #format to hex because is an int
+        trace_id = format(span_context.trace_id, "032x")
+
+        bind_contextvars(request_id=request_id,trace_id=trace_id)
+    else:
+        bind_contextvars(request_id=request_id)
 
     #calculate the duration
     start_time = perf_counter()
 
+    #initializate the status code
+    status_code = 500
+
     try:
         response =  await call_next(request)
 
+        status_code = response.status_code
+
         #duration * 1000 to transform in ms
         duration_ms = (perf_counter() - start_time ) * 1000
-
-        logger.info(
-            "http_request_completed",
-            method=request.method,
-            path=request.url.path,
-            status_code=response.status_code,
-            duration_ms=round(duration_ms, 2)
-        )
-
+        
+        #exclude the metrics logs when  it works ok
+        if request.url.path != "/metrics":
+            logger.info(
+                    "http_request_completed",
+                    method=request.method,
+                    path=request.url.path,
+                    status_code=response.status_code,
+                    duration_ms=round(duration_ms, 2)
+                )
+        
         #add the request_id to header for trazability
         response.headers["X-Request-ID"] = request_id
-
-        #update the metrics
-        HTTP_REQUESTS_TOTAL.labels(
-            method=request.method,
-            path=request.url.path,
-            status_code=str(response.status_code)
-        ).inc()
-
-        #need in seconds for prometheus
-        HTTP_REQUEST_DURATION_SECONDS.labels(
-            method=request.method,
-            path=request.url.path
-        ).observe(duration_ms / 1000)
 
         return response
 
@@ -71,24 +68,27 @@ async def request_context_middleware(request: Request, call_next):
             path=request.url.path,
             duration_ms=round(duration_ms, 2)
         )
-
-        #update the metrics
-        HTTP_REQUEST_ERRORS_TOTAL.labels(
-            method=request.method,
-            path=request.url.path,
-        ).inc()
-
-        #increment the total requests too
-        HTTP_REQUESTS_TOTAL.labels(
-            method=request.method,
-            path=request.url.path,
-            status_code="500",
-        ).inc()
-
-        HTTP_REQUEST_DURATION_SECONDS.labels(
-            method=request.method,
-            path=request.url.path
-        ).observe(duration_ms / 1000)
     
         raise
-        
+
+    finally:
+        #exclude the prometheus calls to metrics in the metrics calculate
+        if request.url.path != "/metrics":
+            #Exclude the mtrics when it is ok
+            HTTP_REQUESTS_TOTAL.labels(
+                method=request.method,
+                path=request.url.path,
+                status_code=str(status_code),
+            ).inc()
+
+            #need in seconds for prometheus
+            HTTP_REQUEST_DURATION_SECONDS.labels(
+                method=request.method,
+                path=request.url.path,
+            ).observe(duration_ms / 1000)
+
+            if status_code >= 400:
+                HTTP_REQUEST_ERRORS_TOTAL.labels(
+                    method=request.method,
+                    path=request.url.path,
+                ).inc()

@@ -10,7 +10,7 @@ def setup_tracing() -> None:
     #create the resource
     resource = Resource.create(
         {
-            "service.name": settings.app_name,
+            "service.name": settings.service_name,
             "deployment.environment.name": settings.environment
         }
     )

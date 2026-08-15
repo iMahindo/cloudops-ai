@@ -1,0 +1,23 @@
+loki.source.file "cloudops_ai" {
+    targets = [
+        {
+            __path__ = "/var/log/cloudops-ai/*.log",
+            job      = "cloudops-ai",
+            service_name  = "cloudops-ai",
+        },
+    ]
+    
+    forward_to = [
+        loki.write.default.receiver,
+    ]
+
+    file_match {
+        enabled = true
+    }
+}
+
+loki.write "default" {
+    endpoint {
+        url = "http://host.docker.internal:3100/loki/api/v1/push"
+    }
+}
