@@ -21,6 +21,7 @@ def test_ingest_document_splits_and_stores_documents(monkeypatch) -> None:
         metadata={
             "document_id": "document-123",
             "source": "test-source",
+            "source_type": "test",
         },
     )
 
@@ -135,6 +136,7 @@ def test_ingest_document_adds_chunk_position_metadata(monkeypatch) -> None:
         metadata={
             "document_id": "document-123",
             "source": "test-source",
+            "source_type": "test",
         },
     )
 
@@ -199,6 +201,7 @@ def test_ingest_document_deletes_existing_chunks(monkeypatch) -> None:
         metadata={
             "document_id": "document-123",
             "source": "test-source",
+            "source_type": "test",
         },
     )
 
@@ -247,6 +250,7 @@ def test_ingest_document_deletes_before_storing(monkeypatch) -> None:
         metadata={
             "document_id": "document-123",
             "source": "test-source",
+            "source_type": "test",
         },
     )
 
@@ -296,6 +300,7 @@ def test_ingest_document_raises_document_ingestion_exception_when_storage_fails(
         metadata={
             "document_id": "document-123",
             "source": "test-source",
+            "source_type": "test",
         },
     )
 
@@ -342,6 +347,7 @@ def test_ingest_documents_continues_when_one_document_fails(monkeypatch) -> None
         metadata={
             "document_id": "first",
             "source": "source-first",
+            "source_type": "test",
         },
     )
 
@@ -444,3 +450,211 @@ def test_ingest_documents_returns_empty_result_for_empty_documents(monkeypatch) 
     assert result.documents_processed == 0
     assert result.chunks_stored == 0
     assert result.failed_documents == []
+
+def test_ingest_document_updates_metrics_on_success(monkeypatch) -> None:
+    calls = SimpleNamespace(
+        total=0,
+        failures=0,
+        duration=0,
+        chunks=0,
+    )
+
+    document = KnowledgeDocument(
+        document_id="document-123",
+        content="Document content",
+        metadata={
+            "document_id": "document-123",
+            "source": "test-source",
+            "source_type": "filesystem",
+        },
+    )
+
+    chunks = [
+        Document(
+            page_content="First chunk",
+            metadata={},
+        ),
+        Document(
+            page_content="Second chunk",
+            metadata={},
+        ),
+        Document(
+            page_content="Third chunk",
+            metadata={},
+        ),
+    ]
+
+    monkeypatch.setattr(
+        document_ingestion,
+        "KNOWLEDGE_INGESTIONS_TOTAL",
+        SimpleNamespace(
+            labels=lambda **kwargs: SimpleNamespace(
+                inc=lambda: setattr(
+                    calls,
+                    "total",
+                    calls.total + 1,
+                )
+            )
+        ),
+    )
+
+    monkeypatch.setattr(
+        document_ingestion,
+        "KNOWLEDGE_INGESTIONS_FAILURES_TOTAL",
+        SimpleNamespace(
+            labels=lambda **kwargs: SimpleNamespace(
+                inc=lambda: setattr(
+                    calls,
+                    "failures",
+                    calls.failures + 1,
+                )
+            )
+        ),
+    )
+
+    monkeypatch.setattr(
+        document_ingestion,
+        "KNOWLEDGE_INGESTIONS_DURATION_SECONDS",
+        SimpleNamespace(
+            labels=lambda **kwargs: SimpleNamespace(
+                observe=lambda value: setattr(
+                    calls,
+                    "duration",
+                    calls.duration + 1,
+                )
+            )
+        ),
+    )
+
+    monkeypatch.setattr(
+        document_ingestion,
+        "KNOWLEDGE_INGESTIONS_CHUNKS_TOTAL",
+        SimpleNamespace(
+            labels=lambda **kwargs: SimpleNamespace(
+                inc=lambda value: setattr(
+                    calls,
+                    "chunks",
+                    calls.chunks + value,
+                )
+            )
+        ),
+    )
+
+    monkeypatch.setattr(
+        document_ingestion,
+        "split_documents",
+        lambda texts, metadatas=None: chunks,
+    )
+
+    monkeypatch.setattr(
+        document_ingestion,
+        "delete_document_chunks",
+        lambda document_id: None,
+    )
+
+    monkeypatch.setattr(
+        document_ingestion,
+        "get_vector_store",
+        lambda: SimpleNamespace(
+            add_documents=lambda documents: None,
+        ),
+    )
+
+    result = document_ingestion.ingest_document(document)
+
+    assert result == 3
+    assert calls.total == 1
+    assert calls.failures == 0
+    assert calls.duration == 1
+    assert calls.chunks == 3
+
+def test_ingest_document_updates_metrics_on_failure(monkeypatch) -> None:
+    calls = SimpleNamespace(
+        total=0,
+        failures=0,
+        duration=0,
+        chunks=0,
+    )
+
+    document = KnowledgeDocument(
+        document_id="document-123",
+        content="Document content",
+        metadata={
+            "document_id": "document-123",
+            "source": "test-source",
+            "source_type": "filesystem",
+        },
+    )
+
+    monkeypatch.setattr(
+        document_ingestion,
+        "KNOWLEDGE_INGESTIONS_TOTAL",
+        SimpleNamespace(
+            labels=lambda **kwargs: SimpleNamespace(
+                inc=lambda: setattr(
+                    calls,
+                    "total",
+                    calls.total + 1,
+                )
+            )
+        ),
+    )
+
+    monkeypatch.setattr(
+        document_ingestion,
+        "KNOWLEDGE_INGESTIONS_FAILURES_TOTAL",
+        SimpleNamespace(
+            labels=lambda **kwargs: SimpleNamespace(
+                inc=lambda: setattr(
+                    calls,
+                    "failures",
+                    calls.failures + 1,
+                )
+            )
+        ),
+    )
+
+    monkeypatch.setattr(
+        document_ingestion,
+        "KNOWLEDGE_INGESTIONS_DURATION_SECONDS",
+        SimpleNamespace(
+            labels=lambda **kwargs: SimpleNamespace(
+                observe=lambda value: setattr(
+                    calls,
+                    "duration",
+                    calls.duration + 1,
+                )
+            )
+        ),
+    )
+
+    monkeypatch.setattr(
+        document_ingestion,
+        "KNOWLEDGE_INGESTIONS_CHUNKS_TOTAL",
+        SimpleNamespace(
+            labels=lambda **kwargs: SimpleNamespace(
+                inc=lambda value: setattr(
+                    calls,
+                    "chunks",
+                    calls.chunks + value,
+                )
+            )
+        ),
+    )
+
+    def failing_split_documents(texts, metadatas=None):
+        raise RuntimeError("Chunking failed")
+
+    monkeypatch.setattr(
+        document_ingestion,
+        "split_documents",
+        failing_split_documents,
+    )
+
+    with pytest.raises(DocumentIngestionException):
+        document_ingestion.ingest_document(document)
+
+    assert calls.total == 1
+    assert calls.failures == 1
+    assert calls.duration == 1
+    assert calls.chunks == 0

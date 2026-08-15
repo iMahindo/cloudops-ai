@@ -11,11 +11,15 @@ class Settings(BaseSettings):
     
     #APP CONFIG
     app_name: str = "CloudOps AI"
+    service_name: str = "cloudops-ai"
     environment: str = "development"
     app_description: str = "AI-powered knowledge assistant for Cloud Operations."
     app_version: str = "0.1.0"
     debug: bool = False
     
+    #exporter OTLP endpoint
+    otlp_traces_endpoint: str
+
     #GROQ API
     groq_api_key: str
     groq_model: str = "openai/gpt-oss-20b"

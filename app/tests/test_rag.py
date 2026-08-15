@@ -1,4 +1,5 @@
 import pytest
+from types import SimpleNamespace
 
 from app.core.exceptions import RAGServiceException
 from app.schemas.rag import RAGSource
@@ -117,3 +118,120 @@ async def test_generate_rag_response_wraps_unexpected_graph_failure(monkeypatch)
         match="Failed to generate RAG response",
     ):
         await rag.generate_rag_response("What is CloudOps?")
+
+@pytest.mark.asyncio
+async def test_generate_rag_response_updates_metrics_on_success(monkeypatch):
+    calls = SimpleNamespace(
+        executions=0,
+        failures=0,
+        duration=0,
+    )
+
+    monkeypatch.setattr(
+        rag,
+        "RAG_EXECUTIONS_TOTAL",
+        SimpleNamespace(
+            inc=lambda: setattr(
+                calls,
+                "executions",
+                calls.executions + 1,
+            )
+        ),
+    )
+
+    monkeypatch.setattr(
+        rag,
+        "RAG_FAILURES_TOTAL",
+        SimpleNamespace(
+            inc=lambda: setattr(
+                calls,
+                "failures",
+                calls.failures + 1,
+            )
+        ),
+    )
+
+    monkeypatch.setattr(
+        rag,
+        "RAG_DURATION_SECONDS",
+        SimpleNamespace(
+            observe=lambda value: setattr(
+                calls,
+                "duration",
+                calls.duration + 1,
+            )
+        ),
+    )
+
+    class FakeRAGGraph:
+        async def ainvoke(self, payload):
+            return {
+                "answer": "OK",
+                "sources": [],
+                "is_valid": True,
+            }
+
+    monkeypatch.setattr(rag, "rag_graph", FakeRAGGraph())
+
+    await rag.generate_rag_response("Question")
+
+    assert calls.executions == 1
+    assert calls.failures == 0
+    assert calls.duration == 1
+
+@pytest.mark.asyncio
+async def test_generate_rag_response_updates_metrics_on_failure(monkeypatch):
+    calls = SimpleNamespace(
+        executions=0,
+        failures=0,
+        duration=0,
+    )
+
+    monkeypatch.setattr(
+        rag,
+        "RAG_EXECUTIONS_TOTAL",
+        SimpleNamespace(
+            inc=lambda: setattr(
+                calls,
+                "executions",
+                calls.executions + 1,
+            )
+        ),
+    )
+
+    monkeypatch.setattr(
+        rag,
+        "RAG_FAILURES_TOTAL",
+        SimpleNamespace(
+            inc=lambda: setattr(
+                calls,
+                "failures",
+                calls.failures + 1,
+            )
+        ),
+    )
+
+    monkeypatch.setattr(
+        rag,
+        "RAG_DURATION_SECONDS",
+        SimpleNamespace(
+            observe=lambda value: setattr(
+                calls,
+                "duration",
+                calls.duration + 1,
+            )
+        ),
+    )
+
+    class FailingRAGGraph:
+        async def ainvoke(self, payload):
+            raise RuntimeError("boom")
+
+    monkeypatch.setattr(rag, "rag_graph", FailingRAGGraph())
+
+    with pytest.raises(RAGServiceException):
+        await rag.generate_rag_response("Question")
+
+    assert calls.executions == 1
+    assert calls.failures == 1
+    assert calls.duration == 1

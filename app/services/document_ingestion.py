@@ -1,12 +1,27 @@
+from time import perf_counter
 from app.core.logging import get_logger
 from app.services.document_splitter import split_documents
 from app.services.qdrant import get_vector_store, delete_document_chunks
 from app.schemas.knowledge import KnowledgeDocument, IngestionResult, FailedDocument
 from app.core.exceptions import DocumentIngestionException
+from app.observability.metrics import (
+    KNOWLEDGE_INGESTIONS_FAILURES_TOTAL,
+    KNOWLEDGE_INGESTIONS_DURATION_SECONDS,
+    KNOWLEDGE_INGESTIONS_CHUNKS_TOTAL,
+    KNOWLEDGE_INGESTIONS_TOTAL
+)
 
 logger = get_logger(__name__)
 
 def ingest_document(document: KnowledgeDocument) -> int:
+    
+    start_time = perf_counter()
+    #get the source_type to incress the metric label
+    source_type = document.metadata["source_type"]
+    KNOWLEDGE_INGESTIONS_TOTAL.labels(
+        source_type=source_type
+    ).inc()
+
     try:
         #create the chunks
         documents = split_documents([document.content], metadatas=[document.metadata])
@@ -29,15 +44,32 @@ def ingest_document(document: KnowledgeDocument) -> int:
             "Document ingestion completed successfully",
         )
 
-        return len(documents)
+        #add the number of chunks to label metric
+        KNOWLEDGE_INGESTIONS_CHUNKS_TOTAL.labels(
+            source_type=source_type
+        ).inc(chunk_count)
+
+        return chunk_count
     except Exception as exc:
         logger.exception(
             "Failed to ingest document %s",
             document.document_id
         )
+
+        #incress the total errors for label source_type
+        KNOWLEDGE_INGESTIONS_FAILURES_TOTAL.labels(
+            source_type=source_type
+        ).inc()
+
         raise DocumentIngestionException(
             "Failed to ingest document"
         ) from exc
+    finally:
+        #add the duration to metric label
+        duration = perf_counter() - start_time
+        KNOWLEDGE_INGESTIONS_DURATION_SECONDS.labels(
+            source_type=source_type
+        ).observe(duration)
 
 def ingest_documents(documents: list[KnowledgeDocument]) -> IngestionResult:
     documents_processed = 0

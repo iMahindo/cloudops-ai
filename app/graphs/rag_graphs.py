@@ -2,16 +2,23 @@ from langgraph.graph import END, START, StateGraph
 
 from app.graphs.rag_state import RAGState
 from app.graphs.rag_nodes import classify_question, route_question, retrieve_context, generate_answer, validate_answer
+from app.observability.rag_utils import observe_rag_node
 
 def build_rag_graph():
     #create the graph
     builder = StateGraph(RAGState)
 
-    #add the nodes
-    builder.add_node(classify_question)
-    builder.add_node(retrieve_context)
-    builder.add_node(generate_answer)
-    builder.add_node(validate_answer)
+    #add the nodes as a wrapped functions to allow the metrics addition in rag_utils
+    builder.add_node(
+        "classify_question",        #name in langgraph
+        observe_rag_node(
+            "classify_question",    #label metric name
+            classify_question       #funtion to be executed
+        )
+    )
+    builder.add_node("retrieve_context", observe_rag_node("retrieve_context",retrieve_context))
+    builder.add_node("generate_answer", observe_rag_node("generate_answer", generate_answer))
+    builder.add_node("validate_answer", observe_rag_node("validate_answer", validate_answer))
 
     #Define the start node
     builder.add_edge(START, "classify_question")
