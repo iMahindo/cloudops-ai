@@ -3,22 +3,12 @@ import sys
 
 import structlog
 
-from pathlib import Path
-
 from app.core.config import settings
 
 def setup_logging() -> None:
 
-    #get the logging file path
-    log_dir = Path("logs")
-    log_dir.mkdir(exist_ok=True)
-
     #create the handlers (console and file)
     console_handler = logging.StreamHandler(sys.stdout)
-    file_handler = logging.FileHandler(
-        log_dir / f"{settings.app_name}.log",
-        encoding="utf-8"
-    )
     
     
     #Configure the minimum level and base logger
@@ -27,8 +17,7 @@ def setup_logging() -> None:
         level=level,
         format=f"%(message)s",
         handlers=[
-            console_handler,
-            file_handler
+            console_handler
         ]
     )
     
