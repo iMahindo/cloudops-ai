@@ -1,23 +1,33 @@
-loki.source.file "cloudops_ai" {
-    targets = [
-        {
-            __path__ = "/var/log/cloudops-ai/*.log",
-            job      = "cloudops-ai",
-            service_name  = "cloudops-ai",
-        },
-    ]
-    
-    forward_to = [
-        loki.write.default.receiver,
-    ]
+discovery.docker "containers" {
+    host = "unix:///var/run/docker.sock"
+}
 
-    file_match {
-        enabled = true
+discovery.relabel "container_names" {
+    targets = discovery.docker.containers.targets
+
+    rule {
+        source_labels = ["__meta_docker_container_name"]
+        regex         = "/(.*)"
+        target_label  = "container"
+        replacement   = "$1"
     }
+    rule {
+        source_labels = ["__meta_docker_container_name"]
+        regex         = "/cloudops-ai-api"
+        target_label  = "service_name"
+        replacement   = "cloudops-ai"
+    }
+}
+
+loki.source.docker "containers" {
+    host        = "unix:///var/run/docker.sock"
+    targets     = discovery.relabel.container_names.output
+    labels      = { "platform" = "docker" }
+    forward_to  = [loki.write.default.receiver]
 }
 
 loki.write "default" {
     endpoint {
-        url = "http://host.docker.internal:3100/loki/api/v1/push"
+        url = "http://loki:3100/loki/api/v1/push"
     }
 }
