@@ -23,5 +23,9 @@ jobs:
       - name: Verify Docker Compose
         run: docker compose version
 
+      #Create a temporal env file in the Github machine
+      - name: Prepare CI environment file
+        run: cp .env.example .env
+
       - name: Validate Docker Compose Configuration
         run: docker compose --env-file .env.example config --quiet
