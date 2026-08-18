@@ -55,7 +55,7 @@ jobs:
       
       # Execute the tests with pytest
       - name: Run test Suite
-        run: docker compose exec -T app python -m pytest
+        run: docker compose exec -T app python -m pytest -p no:cacheprovider
 
       - name: Show Docker Compose status failure
         if: failure()
