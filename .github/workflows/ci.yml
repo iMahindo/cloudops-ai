@@ -21,4 +21,4 @@ jobs:
         run: docker --version
       
       - name: Verify Docker Compose
-        run: docker compose --version
+        run: docker compose version
