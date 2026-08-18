@@ -23,7 +23,7 @@ jobs:
       - name: Verify Docker Compose
         run: docker compose version
 
-      #Create a temporal env file in the Github machine
+      # Create a temporal env file in the Github machine
       - name: Prepare CI environment file
         run: cp .env.example .env
 
@@ -39,23 +39,24 @@ jobs:
         run: docker compose up -d 
       
       - name: Show Docker Compose services state
-        run: docker compose ps -a
+        run: docker compose ps --all
 
       # add a waiting step for healthy services
       - name: Wait for application health
         run: >
-            curl
-            --fail-with-body
-            --show-error
-            --retry 15
-            --retry-delay 2
-            --retry-connrefused
-            --retry-all-errors
-            http://localhost:8000/health
+          curl
+          --fail-with-body
+          --show-error
+          --retry 15
+          --retry-delay 2
+          --retry-connrefused
+          --retry-all-errors
+          http://localhost:8000/health
 
       - name: Show Docker Compose status failure
         if: failure()
         run: docker compose ps -a
+
       - name: Show application logs on failure
         if: failure()
         run: docker compose logs --no-color --tail=200 app
