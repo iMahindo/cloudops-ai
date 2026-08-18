@@ -22,3 +22,6 @@ jobs:
       
       - name: Verify Docker Compose
         run: docker compose version
+
+      - name: Validate Docker Compose Configuration
+        run: docker compose --env-file .env.example config --quiet
