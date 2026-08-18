@@ -21,3 +21,6 @@ knowledge/tests/
 
 #documentation
 diagramas_arquitectura
+
+#ruff cache
+.ruff_cache/
