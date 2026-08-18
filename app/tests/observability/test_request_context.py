@@ -1,9 +1,11 @@
+from types import SimpleNamespace
+
 import pytest
 from starlette.requests import Request
 from starlette.responses import Response
-from types import SimpleNamespace
 
 from app.middleware import request_context
+
 
 @pytest.mark.asyncio
 async def test_request_context_success(monkeypatch):

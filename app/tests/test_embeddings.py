@@ -1,5 +1,6 @@
-import pytest
 from types import SimpleNamespace
+
+import pytest
 
 from app.core.exceptions import EmbeddingServiceException
 from app.services import embeddings

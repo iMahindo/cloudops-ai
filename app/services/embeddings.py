@@ -1,8 +1,8 @@
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 from app.core.config import settings
-from app.core.logging import get_logger
 from app.core.exceptions import EmbeddingServiceException
+from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 

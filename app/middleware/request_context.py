@@ -1,11 +1,16 @@
-from fastapi import Request
-from uuid import uuid4
 from time import perf_counter
-from opentelemetry import trace
+from uuid import uuid4
 
+from fastapi import Request
+from opentelemetry import trace
 from structlog.contextvars import bind_contextvars, clear_contextvars
+
 from app.core.logging import get_logger
-from app.observability.metrics import HTTP_REQUEST_DURATION_SECONDS, HTTP_REQUEST_ERRORS_TOTAL,  HTTP_REQUESTS_TOTAL
+from app.observability.metrics import (
+    HTTP_REQUEST_DURATION_SECONDS,
+    HTTP_REQUEST_ERRORS_TOTAL,
+    HTTP_REQUESTS_TOTAL,
+)
 
 logger = get_logger(__name__)
 

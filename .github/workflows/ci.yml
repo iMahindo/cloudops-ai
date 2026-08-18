@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+  push:
+    branches:
+      - main
+
+# Only read privileges      
+permissions:
+  contents: read
+
+#cancel the previous pushes started
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Verify Docker
+        run: docker --version
+      
+      - name: Verify Docker Compose
+        run: docker compose version
+
+      # Create a temporal env file in the Github machine
+      - name: Prepare CI environment file
+        run: cp .env.example .env
+
+      - name: Validate Docker Compose Configuration
+        run: docker compose --env-file .env.example config --quiet
+
+      # create the app image
+      - name: Build application image
+        run: docker compose build app
+
+      # execute the compose
+      - name: Start Docker Compose stack
+        run: docker compose up -d 
+      
+      - name: Show Docker Compose services state
+        run: docker compose ps --all
+
+      # add a waiting step for healthy services
+      - name: Wait for application health
+        run: >
+          curl
+          --fail-with-body
+          --show-error
+          --retry 15
+          --retry-delay 2
+          --retry-connrefused
+          --retry-all-errors
+          http://localhost:8000/health
+      
+      # Code quality
+      - name: Run Ruff linting
+        run: docker compose exec -T app python -m ruff check --no-cache app
+
+      # Execute the tests with pytest
+      - name: Run test Suite
+        run: docker compose exec -T app python -m pytest -p no:cacheprovider
+
+      - name: Show Docker Compose status failure
+        if: failure()
+        run: docker compose ps -a
+
+      - name: Show application logs on failure
+        if: failure()
+        run: docker compose logs --no-color --tail=200 app
+      
+      # Close containers
+      - name: Stop Docker compose stack
+        if: ${{ !cancelled() }}
+        run: docker compose down

@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from app import main
 
+
 def test_lifespan_initialize_qdrant_collection(monkeypatch) -> None:
     collection_initialized = False
 

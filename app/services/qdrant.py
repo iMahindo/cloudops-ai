@@ -1,10 +1,17 @@
-from qdrant_client import QdrantClient
-from qdrant_client.models import VectorParams, Distance, Filter, FilterSelector, FieldCondition, MatchValue
 from langchain_qdrant import QdrantVectorStore
+from qdrant_client import QdrantClient
+from qdrant_client.models import (
+    Distance,
+    FieldCondition,
+    Filter,
+    FilterSelector,
+    MatchValue,
+    VectorParams,
+)
 
 from app.core.config import settings
-from app.core.logging import get_logger
 from app.core.exceptions import VectorDatabaseException
+from app.core.logging import get_logger
 from app.services.embeddings import embedding_model
 
 logger = get_logger(__name__)

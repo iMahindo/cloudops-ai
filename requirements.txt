@@ -11,6 +11,7 @@ groq==0.37.1
 #Tests
 pytest==9.1.1
 httpx==0.28.1
+httpx2==2.9.0
 pytest-asyncio==1.4.0
 
 python-multipart==0.0.32
@@ -38,3 +39,6 @@ opentelemetry-api==1.44.0
 opentelemetry-sdk==1.44.0
 opentelemetry-instrumentation-fastapi==0.65b0
 opentelemetry-exporter-otlp-proto-http==1.44.0
+
+#linting
+ruff==0.16.3

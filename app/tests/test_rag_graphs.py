@@ -57,14 +57,16 @@ async def test_rag_graphs_follows_retrieval_route(monkeypatch):
 
     async def fake_search_knowledge(query: str, limit: int):
         class Result:
-            content = "The support team is commanded by Roy Campbell."
-            metadata = {
-                "file_name": "mgs_knowledge.md",
-                "chunk_index": 0,
-            }
+            def __init__(self):
+                self.content = "The support team is commanded by Roy Campbell."
+                self.metadata = {
+                    "file_name": "mgs_knowledge.md",
+                    "chunk_index": 0,
+                }
 
         class SearchResponse:
-            results = [Result()]
+            def __init__(self):
+                self.results = [Result()]
 
         return SearchResponse()
 

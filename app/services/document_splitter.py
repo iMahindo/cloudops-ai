@@ -2,9 +2,8 @@ from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.core.config import settings
-from app.core.logging import get_logger
 from app.core.exceptions import DocumentProcessingException
-
+from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 

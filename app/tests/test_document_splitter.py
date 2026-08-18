@@ -1,9 +1,11 @@
+from types import SimpleNamespace
+
 import pytest
 from langchain_core.documents import Document
-from types import SimpleNamespace
 
 from app.core.exceptions import DocumentProcessingException
 from app.services import document_splitter
+
 
 def test_split_documents_returns_documents() -> None:
     result = document_splitter.split_documents(

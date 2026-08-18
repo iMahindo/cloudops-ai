@@ -1,9 +1,9 @@
-from pathlib import Path
 from hashlib import sha256
+from pathlib import Path
 
-from app.services.file_reader import read_file
-from app.schemas.knowledge import KnowledgeDocument
 from app.core.logging import get_logger
+from app.schemas.knowledge import KnowledgeDocument
+from app.services.file_reader import read_file
 
 logger = get_logger(__name__)
 

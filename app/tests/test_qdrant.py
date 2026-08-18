@@ -1,12 +1,12 @@
-import pytest
 from types import SimpleNamespace
+
+import pytest
 from qdrant_client.models import Distance
 
-
-
-from app.services import qdrant
 from app.core.config import settings
 from app.core.exceptions import VectorDatabaseException
+from app.services import qdrant
+
 
 #Define the tests
 def test_get_collections_returns_collections_names(monkeypatch) -> None:

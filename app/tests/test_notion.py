@@ -1,7 +1,6 @@
-import pytest
 
-from app.schemas.knowledge import KnowledgeDocument
-import app.sources.notion as notion
+from app.sources import notion
+
 
 def test_extract_rich_text_joins_plain_text() -> None:
     rich_text = [

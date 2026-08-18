@@ -1,15 +1,14 @@
 from time import perf_counter
 
-from app.core.logging import get_logger
 from app.core.exceptions import KnowledgeSearchException
-from app.schemas.knowledge_search import KnowledgeSearchResult, KnowledgeSearchResponse
-from app.services.qdrant import get_vector_store
+from app.core.logging import get_logger
 from app.observability.metrics import (
-    KNOWLEDGE_SEARCH_TOTAL,
-    KNOWLEDGE_SEARCH_FAILURES_TOTAL,
     KNOWLEDGE_SEARCH_DURATION_SECONDS,
+    KNOWLEDGE_SEARCH_FAILURES_TOTAL,
+    KNOWLEDGE_SEARCH_TOTAL,
 )
-
+from app.schemas.knowledge_search import KnowledgeSearchResponse, KnowledgeSearchResult
+from app.services.qdrant import get_vector_store
 
 logger = get_logger(__name__)
 
