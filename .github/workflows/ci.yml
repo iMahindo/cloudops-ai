@@ -52,3 +52,10 @@ jobs:
             --retry-connrefused
             --retry-all-errors
             http://localhost:8000/health
+
+      - name: Show Docker Compose status failure
+        if: failure()
+        run: docker compose ps -a
+      - name: Show application logs on failure
+        if: failure()
+        run: docker compose logs --no-color --tail=200 app
