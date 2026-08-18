@@ -29,3 +29,7 @@ jobs:
 
       - name: Validate Docker Compose Configuration
         run: docker compose --env-file .env.example config --quiet
+
+      # create the app image
+      - name: Build application image
+        run: docker compose build app
