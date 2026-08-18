@@ -33,3 +33,10 @@ jobs:
       # create the app image
       - name: Build application image
         run: docker compose build app
+
+      # execute the compose
+      - name: Start Docker Compose stack
+        run: docker compose up -d 
+      
+      - name: Show Docker Compose services state
+        run: docker compose ps
