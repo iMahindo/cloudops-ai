@@ -68,3 +68,8 @@ jobs:
       - name: Show application logs on failure
         if: failure()
         run: docker compose logs --no-color --tail=200 app
+      
+      # Close containers
+      - name: Stop Docker compose stack
+        if: ${{ !cancelled() }}
+        run: docker compose down
