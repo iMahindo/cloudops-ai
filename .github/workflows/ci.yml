@@ -55,7 +55,7 @@ jobs:
       
       # Code quality
       - name: Run Ruff linting
-      - run: docker compose exec -T app python -m ruff check app
+        run: docker compose exec -T app python -m ruff check app
 
       # Execute the tests with pytest
       - name: Run test Suite
