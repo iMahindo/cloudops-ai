@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 
+
 class KnowledgeDocument(BaseModel):
     document_id: str
     content: str

@@ -1,10 +1,16 @@
-from os import name
-import pytest
 from types import SimpleNamespace
 
-from app.graphs.rag_nodes import route_question, validate_answer, retrieve_context, classify_question, generate_answer
-from app.schemas.rag import RAGSource, RAGQuestionClassification
+import pytest
+
 from app.core.config import settings
+from app.graphs.rag_nodes import (
+    classify_question,
+    generate_answer,
+    retrieve_context,
+    route_question,
+    validate_answer,
+)
+from app.schemas.rag import RAGQuestionClassification, RAGSource
 
 
 def test_route_question_returns_retrieval_when_required():

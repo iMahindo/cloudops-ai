@@ -1,17 +1,28 @@
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, UploadFile, status, File
+
+from fastapi import APIRouter, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 
+from app.core.exceptions import (
+    KnowledgeSearchException,
+    LLMServiceException,
+    RAGServiceException,
+)
 from app.schemas.chat import ChatRequest, ChatResponse
+from app.schemas.knowledge import (
+    NotionIngestionRequest,
+    NotionIngestionResponse,
+    UploadKnowledgeResponse,
+)
+from app.schemas.knowledge_search import KnowledgeSearchRequest, KnowledgeSearchResponse
 from app.schemas.rag import RAGRequest, RAGResponse
-from app.schemas.knowledge_search import KnowledgeSearchRequest,KnowledgeSearchResponse
-from app.schemas.knowledge import UploadKnowledgeResponse, NotionIngestionRequest, NotionIngestionResponse
-from app.core.exceptions import LLMServiceException, RAGServiceException
-from app.core.exceptions import KnowledgeSearchException
-from app.services.llm import generate_response
+from app.services.knowledge_ingestion import (
+    ingest_notion_page,
+    ingest_uploaded_markdown,
+)
 from app.services.knowledge_search import search_knowledge
+from app.services.llm import generate_response
 from app.services.rag import generate_rag_response
-from app.services.knowledge_ingestion import ingest_uploaded_markdown, ingest_notion_page
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 

@@ -53,6 +53,10 @@ jobs:
           --retry-all-errors
           http://localhost:8000/health
       
+      # Code quality
+      - name: Run Ruff linting
+      - run: docker compose exec -T app python -m ruff check app
+
       # Execute the tests with pytest
       - name: Run test Suite
         run: docker compose exec -T app python -m pytest -p no:cacheprovider

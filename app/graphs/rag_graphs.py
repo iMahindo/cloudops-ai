@@ -1,8 +1,15 @@
 from langgraph.graph import END, START, StateGraph
 
+from app.graphs.rag_nodes import (
+    classify_question,
+    generate_answer,
+    retrieve_context,
+    route_question,
+    validate_answer,
+)
 from app.graphs.rag_state import RAGState
-from app.graphs.rag_nodes import classify_question, route_question, retrieve_context, generate_answer, validate_answer
 from app.observability.rag_utils import observe_rag_node
+
 
 def build_rag_graph():
     #create the graph

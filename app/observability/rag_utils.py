@@ -1,6 +1,7 @@
-from time import perf_counter
-from opentelemetry import trace
 import inspect
+from time import perf_counter
+
+from opentelemetry import trace
 
 from app.observability.metrics import RAG_NODES_DURATION_SECONDS
 

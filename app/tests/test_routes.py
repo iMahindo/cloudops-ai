@@ -1,8 +1,12 @@
 from fastapi.testclient import TestClient
 
-from app.core.exceptions import KnowledgeSearchException, LLMServiceException, RAGServiceException
-from app.main import app
 from app.api import routes
+from app.core.exceptions import (
+    KnowledgeSearchException,
+    LLMServiceException,
+    RAGServiceException,
+)
+from app.main import app
 from app.schemas.knowledge_search import KnowledgeSearchResponse, KnowledgeSearchResult
 from app.schemas.rag import RAGResponse, RAGSource
 

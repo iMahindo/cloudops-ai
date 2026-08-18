@@ -1,9 +1,10 @@
-import pytest
 from types import SimpleNamespace
 
+import pytest
 
 from app.core.exceptions import LLMServiceException
 from app.services import llm
+
 
 #Define the tests
 @pytest.mark.asyncio
@@ -28,7 +29,7 @@ async def test_generate_response_success(monkeypatch) -> None:
 @pytest.mark.asyncio
 async def test_generate_response_exception(monkeypatch) -> None:
     async def mock_ainvoke(*args, **kwargs):
-        raise Exception("Mock API Error")
+        raise RuntimeError("Mock API Error")
 
     monkeypatch.setattr(
         llm,

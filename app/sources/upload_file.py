@@ -1,5 +1,5 @@
-from pathlib import Path
 from hashlib import sha256
+from pathlib import Path
 
 from app.schemas.knowledge import KnowledgeDocument
 

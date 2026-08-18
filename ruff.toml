@@ -1,0 +1,4 @@
+target-version = "py313"
+
+[lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.File"]

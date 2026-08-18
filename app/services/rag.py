@@ -2,9 +2,13 @@ from time import perf_counter
 
 from app.core.exceptions import RAGServiceException
 from app.core.logging import get_logger
-from app.schemas.rag import RAGResponse
 from app.graphs.rag_graphs import rag_graph
-from app.observability.metrics import RAG_DURATION_SECONDS, RAG_EXECUTIONS_TOTAL, RAG_FAILURES_TOTAL
+from app.observability.metrics import (
+    RAG_DURATION_SECONDS,
+    RAG_EXECUTIONS_TOTAL,
+    RAG_FAILURES_TOTAL,
+)
+from app.schemas.rag import RAGResponse
 
 logger = get_logger(__name__)
 

@@ -4,8 +4,8 @@ from app.core.logging import get_logger
 from app.schemas.knowledge import IngestionResult
 from app.services.document_ingestion import ingest_document, ingest_documents
 from app.sources.filesystem import load_markdown_directory
-from app.sources.upload_file import load_uploaded_markdown
 from app.sources.notion import load_notion_page
+from app.sources.upload_file import load_uploaded_markdown
 
 logger = get_logger(__name__)
 

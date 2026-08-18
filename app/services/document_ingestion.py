@@ -1,15 +1,16 @@
 from time import perf_counter
-from app.core.logging import get_logger
-from app.services.document_splitter import split_documents
-from app.services.qdrant import get_vector_store, delete_document_chunks
-from app.schemas.knowledge import KnowledgeDocument, IngestionResult, FailedDocument
+
 from app.core.exceptions import DocumentIngestionException
+from app.core.logging import get_logger
 from app.observability.metrics import (
-    KNOWLEDGE_INGESTIONS_FAILURES_TOTAL,
-    KNOWLEDGE_INGESTIONS_DURATION_SECONDS,
     KNOWLEDGE_INGESTIONS_CHUNKS_TOTAL,
-    KNOWLEDGE_INGESTIONS_TOTAL
+    KNOWLEDGE_INGESTIONS_DURATION_SECONDS,
+    KNOWLEDGE_INGESTIONS_FAILURES_TOTAL,
+    KNOWLEDGE_INGESTIONS_TOTAL,
 )
+from app.schemas.knowledge import FailedDocument, IngestionResult, KnowledgeDocument
+from app.services.document_splitter import split_documents
+from app.services.qdrant import delete_document_chunks, get_vector_store
 
 logger = get_logger(__name__)
 

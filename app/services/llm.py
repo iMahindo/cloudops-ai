@@ -1,9 +1,8 @@
-from langchain_core import messages
 from langchain_groq import ChatGroq
 
 from app.core.config import settings
-from app.core.logging import get_logger
 from app.core.exceptions import LLMServiceException
+from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 

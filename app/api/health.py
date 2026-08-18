@@ -1,5 +1,4 @@
 from fastapi import APIRouter
-from opentelemetry import trace
 
 from app.core.logging import get_logger
 

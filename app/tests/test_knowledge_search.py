@@ -1,10 +1,11 @@
-import pytest
 from types import SimpleNamespace
 
+import pytest
 from langchain_core.documents import Document
 
-from app.services import knowledge_search
 from app.core.exceptions import KnowledgeSearchException
+from app.services import knowledge_search
+
 
 @pytest.mark.asyncio
 async def test_search_knowledge_rejects_empty_query() -> None:

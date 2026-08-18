@@ -1,6 +1,6 @@
-import pytest
 from types import SimpleNamespace
 
+import pytest
 from langchain_core.documents import Document
 
 from app.core.exceptions import DocumentIngestionException

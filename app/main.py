@@ -1,17 +1,18 @@
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from app.api.health import health_router
-from app.api.routes import router
 from app.api.metrics import metrics_router
+from app.api.routes import router
 from app.core.config import settings
 from app.core.logging import get_logger, setup_logging
 from app.middleware.request_context import request_context_middleware
-from app.services.qdrant import create_knowledge_collection
 from app.observability.tracing import setup_tracing
+from app.services.qdrant import create_knowledge_collection
 
 #initialize the logger
 setup_logging()

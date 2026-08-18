@@ -55,9 +55,7 @@ def test_load_uploaded_markdown_raises_when_file_is_not_markdown() -> None:
 
 
 def test_load_uploaded_markdown_decodes_utf8_content() -> None:
-    content = "Guía técnica con acentos".encode(
-        "utf-8"
-    )
+    content = "Guía técnica con acentos".encode()
 
     document = upload_file.load_uploaded_markdown(
         "guide.md",

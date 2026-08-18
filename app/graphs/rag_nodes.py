@@ -1,12 +1,11 @@
-from pickle import TRUE
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
 
-from app.graphs.rag_state import RAGState
-from app.services.llm import llm
-from app.schemas.rag import RAGQuestionClassification, RAGSource
 from app.core.config import settings
+from app.graphs.rag_state import RAGState
+from app.schemas.rag import RAGQuestionClassification, RAGSource
 from app.services.knowledge_search import search_knowledge
+from app.services.llm import llm
 
 question_classifier = llm.with_structured_output(
     RAGQuestionClassification,
@@ -18,6 +17,7 @@ classification_prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
+            (
             "Decide si la pregunta debe consultar la base de conocimiento interna. "
             "Devuelve requires_retrieval=True para preguntas factuales, técnicas, "
             "operativas o documentales que puedan beneficiarse de información "
@@ -26,6 +26,7 @@ classification_prompt = ChatPromptTemplate.from_messages(
             "Devuelve requires_retrieval=False únicamente para saludos, conversación "
             "general, interacción social o peticiones que claramente no necesitan "
             "consultar documentación."
+            )
         ),
         (
             "human",
@@ -59,8 +60,10 @@ direct_answer_prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
+            (
             "Eres un asistente CloudOps. "
             "Responde de forma clara y concisa"
+            )
         ),
         (
             "human",
