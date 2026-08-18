@@ -39,4 +39,15 @@ jobs:
         run: docker compose up -d 
       
       - name: Show Docker Compose services state
-        run: docker compose ps
+        run: docker compose ps -a
+
+      # add a waiting step for healthy services
+      - name: Wait for application health
+        run: >
+            curl
+            --fail-with-body
+            --show-error
+            --retry 15
+            --retry-delay 2
+            --retry-connrefused
+            http://localhost:8000/health
