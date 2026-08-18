@@ -52,6 +52,10 @@ jobs:
           --retry-connrefused
           --retry-all-errors
           http://localhost:8000/health
+      
+      # Execute the tests with pytest
+      - name: Run test Suite
+        run: docker compose exec -T app python -m pytest
 
       - name: Show Docker Compose status failure
         if: failure()
