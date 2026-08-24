@@ -83,3 +83,36 @@ jobs:
       - name: Stop Docker compose stack
         if: ${{ !cancelled() }}
         run: docker compose down
+  #terraform job
+  terraform-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.15.8
+          terraform_wrapper: false
+
+      - name: Show Terraform version
+        run: terraform version
+
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive terraform
+
+      - name: Initialize bootstrap without remote backend
+        run: terraform -chdir=terraform/bootstrap init -backend=false -input=false -lockfile=readonly
+
+      - name: Validate bootstrap
+        run: terraform -chdir=terraform/bootstrap validate
+
+      - name: Initialize demo without remote backend
+        run: terraform -chdir=terraform/demo init -backend=false -input=false -lockfile=readonly
+
+      - name: Validate demo
+        run: terraform -chdir=terraform/demo validate
+
