@@ -22,3 +22,14 @@ variable "budget_amount" {
     error_message = "The budget amount must be greater than zero"
   }
 }
+
+variable "budget_start_date" {
+  description = "First day of the month from wich the Azure buidget starts"
+  type        = string
+  nullable    = false
+
+  validation {
+    condition     = can(regex("^\\d{4}-\\d{2}-01T00:00:00Z$", var.budget_start_date))
+    error_message = "The budget start date must use the format YYYY-MM-01T00:00:00Z"
+  }
+}
