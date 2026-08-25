@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     app_description: str = "AI-powered knowledge assistant for Cloud Operations."
     app_version: str = "0.1.0"
     debug: bool = False
+
+    #metrics only enable in local
+    metrics_enabled: bool = True
     
     #exporter OTLP endpoint
     otlp_traces_endpoint: str | None = None
@@ -23,6 +26,7 @@ class Settings(BaseSettings):
     #GROQ API
     groq_api_key: str
     groq_model: str = "openai/gpt-oss-20b"
+    groq_max_tokens: int = 1024
 
     # DOCUMENT PROCESSING
     chunk_size: int = 1000

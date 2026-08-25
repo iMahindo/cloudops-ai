@@ -4,6 +4,8 @@ from pydantic import BaseModel, Field
 class RAGRequest(BaseModel):
     question: str = Field(
         min_length=1,
+        max_length=1000,
+        pattern=r"\S",
         description="Question answered using the internal knowledge base",
     )
 

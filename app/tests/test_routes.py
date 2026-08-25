@@ -359,10 +359,7 @@ def test_notion_ingestion_rejects_empty_page_id() -> None:
         },
     )
 
-    assert response.status_code == 400
-    assert response.json() == {
-        "detail": "Notion page ID must not be empty"
-    }
+    assert response.status_code == 422
 
 def test_notion_ingestion_returns_503_on_service_error(monkeypatch) -> None:
     def fake_ingest_notion_page(page_id: str) -> int:

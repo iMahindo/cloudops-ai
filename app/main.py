@@ -57,10 +57,11 @@ app = FastAPI(
 #Routers added to app
 app.include_router(router)
 app.include_router(health_router)
-app.include_router(metrics_router)
+if settings.metrics_enabled:
+    app.include_router(metrics_router)
 
 #add tracing and intrumentor
-FastAPIInstrumentor.instrument_app(app, excluded_urls="/metrics") #exclude prometheus metrics call
+FastAPIInstrumentor.instrument_app(app, excluded_urls="/health,/metrics") #exclude prometheus metrics call
 
 app.mount(
     "/static",

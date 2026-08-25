@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field
 class KnowledgeSearchRequest(BaseModel):
     query: str = Field(
         min_length=1,
+        max_length=500,
+        pattern=r"\S",
         description="Text used to search the knowledge base",
     )
     limit: int = Field(

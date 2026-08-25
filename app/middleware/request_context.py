@@ -14,8 +14,12 @@ from app.observability.metrics import (
 
 logger = get_logger(__name__)
 
+OBSERVABILITY_PATHS = {"/health", "/metrics"}
+
 async def request_context_middleware(request: Request, call_next):
     clear_contextvars()
+
+    should_record_request = request.url.path not in OBSERVABILITY_PATHS
 
     request_id = str(uuid4())
 
@@ -48,8 +52,8 @@ async def request_context_middleware(request: Request, call_next):
         #duration * 1000 to transform in ms
         duration_ms = (perf_counter() - start_time ) * 1000
         
-        #exclude the metrics logs when  it works ok
-        if request.url.path != "/metrics":
+        #exclude the metrics logs ans health when  it works ok
+        if should_record_request:
             logger.info(
                     "http_request_completed",
                     method=request.method,
@@ -78,7 +82,7 @@ async def request_context_middleware(request: Request, call_next):
 
     finally:
         #exclude the prometheus calls to metrics in the metrics calculate
-        if request.url.path != "/metrics":
+        if should_record_request:
             #Exclude the mtrics when it is ok
             HTTP_REQUESTS_TOTAL.labels(
                 method=request.method,

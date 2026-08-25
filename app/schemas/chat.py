@@ -2,9 +2,11 @@ from pydantic import BaseModel, Field
 
 
 class ChatRequest(BaseModel):
-    prompt: str = Field (
-        min_length = 1,
-        description = "Pregunta o instrucción enviada al LLM",
+    prompt: str = Field(
+        min_length=1,
+        max_length=2000,
+        pattern=r"\S",
+        description="Pregunta o instrucción enviada al LLM",
     )
 
 class ChatResponse(BaseModel):
