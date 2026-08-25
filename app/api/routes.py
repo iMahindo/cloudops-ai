@@ -136,3 +136,9 @@ def insert_notion_page(request: NotionIngestionRequest) -> NotionIngestionRespon
             status_code = status.HTTP_503_SERVICE_UNAVAILABLE,
             detail = "The notion ingestion service is temporarily unavailable"
     )from exc 
+
+@router.get("/config")
+def get_public_config() -> dict[str, bool]:
+    return {
+        "ingestion_enabled": settings.ingestion_enabled,
+    }

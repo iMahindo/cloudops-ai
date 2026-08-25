@@ -12,7 +12,7 @@ async def test_request_context_success(monkeypatch):
     scope = {
         "type": "http",
         "method": "GET",
-        "path": "/health",
+        "path": "/test-success",
         "headers": [],
     }
 
@@ -313,6 +313,81 @@ async def test_metrics_endpoint_is_excluded(monkeypatch):
     assert calls.errors == 0
     assert calls.duration == 0
 
+@pytest.mark.asyncio
+async def test_health_endpoint_is_excluded(monkeypatch):
+    scope = {
+        "type": "http",
+        "method": "GET",
+        "path": "/health",
+        "headers": [],
+    }
+
+    request = Request(scope)
+
+    async def mock_call_next(request):
+        return Response(status_code=200)
+
+    calls = SimpleNamespace(
+        total=0,
+        errors=0,
+        duration=0,
+    )
+
+    fake_total_metric = SimpleNamespace(
+        labels=lambda **kwargs: SimpleNamespace(
+            inc=lambda: setattr(
+                calls,
+                "total",
+                calls.total + 1,
+            )
+        )
+    )
+
+    fake_error_metric = SimpleNamespace(
+        labels=lambda **kwargs: SimpleNamespace(
+            inc=lambda: setattr(
+                calls,
+                "errors",
+                calls.errors + 1,
+            )
+        )
+    )
+
+    fake_duration_metric = SimpleNamespace(
+        labels=lambda **kwargs: SimpleNamespace(
+            observe=lambda value: setattr(
+                calls,
+                "duration",
+                calls.duration + 1,
+            )
+        )
+    )
+
+    monkeypatch.setattr(
+        request_context,
+        "HTTP_REQUESTS_TOTAL",
+        fake_total_metric,
+    )
+    monkeypatch.setattr(
+        request_context,
+        "HTTP_REQUEST_ERRORS_TOTAL",
+        fake_error_metric,
+    )
+    monkeypatch.setattr(
+        request_context,
+        "HTTP_REQUEST_DURATION_SECONDS",
+        fake_duration_metric,
+    )
+
+    response = await request_context.request_context_middleware(
+        request,
+        mock_call_next,
+    )
+
+    assert response.status_code == 200
+    assert calls.total == 0
+    assert calls.errors == 0
+    assert calls.duration == 0
 
 @pytest.mark.asyncio
 async def test_request_id_is_added_to_response_header():

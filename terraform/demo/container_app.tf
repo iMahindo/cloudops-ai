@@ -98,6 +98,11 @@ resource "azurerm_container_app" "demo" {
       }
 
       env {
+        name  = "METRICS_ENABLED"
+        value = "false"
+      }
+
+      env {
         name  = "ENVIRONMENT"
         value = "production"
       }

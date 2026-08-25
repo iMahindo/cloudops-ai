@@ -23,6 +23,28 @@ const uploadPanel =
 const selectedFileName =
     document.getElementById("selected-file-name");
 
+async function configureFeatures() {
+    try {
+        const response = await fetch("/config");
+
+        if (!response.ok) {
+            return;
+        }
+
+        const config = await response.json();
+
+        toggleUploadButton.hidden =
+            !config.ingestion_enabled;
+
+    } catch (error) {
+        console.error(
+            "Failed to load public configuration"
+        );
+    }
+}
+
+configureFeatures();
+
 function scrollChatToBottom() {
     chatContainer.scrollTop = chatContainer.scrollHeight;
 }

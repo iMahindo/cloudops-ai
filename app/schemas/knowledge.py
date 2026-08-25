@@ -21,8 +21,10 @@ class UploadKnowledgeResponse(BaseModel):
     chunks_stored: int
 
 class NotionIngestionRequest(BaseModel):
-    page_id: str = Field (
-        min_length = 1
+    page_id: str = Field(
+        min_length=1,
+        max_length=200,
+        pattern=r"\S",
     )
 
 class NotionIngestionResponse(BaseModel):

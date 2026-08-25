@@ -10,6 +10,7 @@ llm = ChatGroq(
     model=settings.groq_model,
     api_key=settings.groq_api_key,
     temperature=0,
+    max_tokens=settings.groq_max_tokens,
 )
 
 async def generate_response(prompt: str) -> str:
