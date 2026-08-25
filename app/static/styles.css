@@ -249,3 +249,7 @@ body {
     color: #94a3b8;
     font-size: 14px;
 }
+
+[hidden] {
+    display: none !important;
+}
