@@ -8,6 +8,10 @@ from app.core.config import settings
 
 
 def setup_tracing() -> None:
+    #Tracing is optional due the azure configuration decided
+    if not settings.otlp_traces_endpoint:
+        return
+
     #create the resource
     resource = Resource.create(
         {

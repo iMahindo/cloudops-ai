@@ -385,3 +385,46 @@ def test_notion_ingestion_returns_503_on_service_error(monkeypatch) -> None:
     assert response.json() == {
         "detail": "The notion ingestion service is temporarily unavailable"
     }
+
+def test_upload_is_disabled_when_ingestion_is_disabled(monkeypatch) -> None:
+    monkeypatch.setattr(
+        routes.settings,
+        "ingestion_enabled",
+        False,
+    )
+
+    response = client.post(
+        "/knowledge/upload",
+        files={
+            "file": (
+                "guide.md",
+                b"# CloudOps Guide",
+                "text/markdown",
+            )
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Not found",
+    }
+
+
+def test_notion_is_disabled_when_ingestion_is_disabled(monkeypatch) -> None:
+    monkeypatch.setattr(
+        routes.settings,
+        "ingestion_enabled",
+        False,
+    )
+
+    response = client.post(
+        "/knowledge/notion",
+        json={
+            "page_id": "page-123",
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Not found",
+    }

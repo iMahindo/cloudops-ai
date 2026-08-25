@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     debug: bool = False
     
     #exporter OTLP endpoint
-    otlp_traces_endpoint: str
+    otlp_traces_endpoint: str | None = None
 
     #GROQ API
     groq_api_key: str
@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     qdrant_host: str
     qdrant_port: int
     qdrant_collection: str
+    #Only for Qdrant cloud
+    qdrant_api_key: str | None = None
+    qdrant_https: bool = False
+    #true in local, false in cloud environment
+    qdrant_create_collection_on_startup: bool = True
 
     #GEMINI API
     gemini_api_key: str
@@ -41,8 +46,9 @@ class Settings(BaseSettings):
     #RAG CONFIG
     rag_retrieval_limit: int = 5
 
-    #NOTION API
-    notion_api_key: str
+    #NOTION API (optional for azure)
+    notion_api_key: str | None = None
+    ingestion_enabled: bool = True
     
 
 settings = Settings()

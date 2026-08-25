@@ -3,7 +3,12 @@ from notion_client import Client
 from app.core.config import settings
 from app.schemas.knowledge import KnowledgeDocument
 
-client = Client(auth=settings.notion_api_key)
+#Optional in cloud environment
+client = (
+    Client(auth=settings.notion_api_key)
+    if settings.notion_api_key
+    else None
+)
 
 def extract_rich_text(rich_text: list[dict]) -> str:
     return "".join(

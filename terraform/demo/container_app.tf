@@ -4,6 +4,8 @@ resource "azurerm_container_app" "demo" {
   resource_group_name          = azurerm_resource_group.demo.name
   revision_mode                = "Single" #Only able one version
 
+  count = var.deploy_container_app ? 1 : 0
+
   identity {
     type = "UserAssigned"
 
@@ -119,6 +121,22 @@ resource "azurerm_container_app" "demo" {
         name  = "QDRANT_COLLECTION"
         value = "cloudops_knowledge"
       }
+
+      env {
+        name  = "QDRANT_HTTPS"
+        value = "true"
+      }
+
+      env {
+        name  = "QDRANT_CREATE_COLLECTION_ON_STARTUP"
+        value = "false"
+      }
+
+      env {
+        name  = "INGESTION_ENABLED"
+        value = "false"
+      }
+
       env {
         name        = "GROQ_API_KEY"
         secret_name = local.groq_api_key_secret_name

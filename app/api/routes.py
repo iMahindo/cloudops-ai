@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 
+from app.core.config import settings
 from app.core.exceptions import (
     KnowledgeSearchException,
     LLMServiceException,
@@ -72,9 +73,15 @@ async def rag_ask(request: RAGRequest) -> RAGResponse:
         )from exc
     return response
 
-@router.post("/knowledge/upload", response_model = UploadKnowledgeResponse)
+@router.post("/knowledge/upload", response_model = UploadKnowledgeResponse, include_in_schema=settings.ingestion_enabled)
 async def upload_knowledge_document(file: UploadFile = File(...)) -> UploadKnowledgeResponse:
     try:
+        if not settings.ingestion_enabled:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Not found",
+            )
+
         if not file.filename:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -102,9 +109,14 @@ async def upload_knowledge_document(file: UploadFile = File(...)) -> UploadKnowl
             detail = "The upload service is temporarily unavailable"
     )from exc
 
-@router.post("/knowledge/notion", response_model = NotionIngestionResponse)
+@router.post("/knowledge/notion", response_model = NotionIngestionResponse, include_in_schema=settings.ingestion_enabled)
 def insert_notion_page(request: NotionIngestionRequest) -> NotionIngestionResponse:
     try:
+        if not settings.ingestion_enabled:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Not found",
+            )
         if not request.page_id.strip():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
