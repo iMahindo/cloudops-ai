@@ -9,5 +9,4 @@ health_router = APIRouter(tags=["Health"])
 
 @health_router.get("/health")
 def health_check():
-    logger.info("Healt check requested")
     return {"status": "ok"}

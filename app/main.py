@@ -29,17 +29,17 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         settings.app_name,
         settings.environment,
     )
+    if settings.qdrant_create_collection_on_startup:
+        logger.info(
+            "Initializing Qdrant collection: %s",
+            settings.qdrant_collection
+        )
+        #create the collection if not exist
+        create_knowledge_collection()
 
-    logger.info(
-        "Initializing Qdrant collection: %s",
-        settings.qdrant_collection
-    )
-    #create the collection if not exist
-    create_knowledge_collection()
-
-    logger.info(
-        "Qdrant collection initialized successfully"
-    )
+        logger.info(
+            "Qdrant collection initialized successfully"
+        )
 
     yield
 

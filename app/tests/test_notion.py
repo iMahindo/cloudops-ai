@@ -1,4 +1,6 @@
 
+from types import SimpleNamespace
+
 from app.sources import notion
 
 
@@ -63,10 +65,18 @@ def test_get_block_children_handles_pagination(monkeypatch) -> None:
             "next_cursor": None,
         }
 
+    fake_client = SimpleNamespace(
+        blocks=SimpleNamespace(
+            children=SimpleNamespace(
+                list=fake_list,
+            )
+        )
+    )
+
     monkeypatch.setattr(
-        notion.client.blocks.children,
-        "list",
-        fake_list,
+        notion,
+        "client",
+        fake_client,
     )
 
     result = notion.get_block_children("page-1")
@@ -177,10 +187,16 @@ def test_load_notion_page_returns_knowledge_document(monkeypatch) -> None:
         },
     }
 
+    fake_client = SimpleNamespace(
+        pages=SimpleNamespace(
+            retrieve=lambda page_id: page,
+        )
+    )
+
     monkeypatch.setattr(
-        notion.client.pages,
-        "retrieve",
-        lambda page_id: page,
+        notion,
+        "client",
+        fake_client,
     )
 
     monkeypatch.setattr(

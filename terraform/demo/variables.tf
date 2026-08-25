@@ -18,7 +18,7 @@ variable "key_vault_secrets_officer_object_id" {
 }
 
 variable "container_image_tag" {
-  description = "Inmutable tag of the application container image, normally a Git commit"
+  description = "Immutable tag of the application container image, normally a Git commit SHA"
   type        = string
   nullable    = false
 
@@ -37,4 +37,11 @@ variable "qdrant_host" {
     condition     = length(trimspace(var.qdrant_host)) > 0
     error_message = "The Qdrant host must not be empty."
   }
+}
+
+variable "deploy_container_app" {
+  description = "Whether to deploy the Container App after its image and secrets are available"
+  type        = bool
+  default     = false
+  nullable    = false
 }

@@ -20,5 +20,7 @@ output "key_vault_uri" {
 
 output "container_app_url" {
   description = "Public HTTPS URL of the CloudOps AI demo"
-  value       = "https://${azurerm_container_app.demo.ingress[0].fqdn}"
+  value = var.deploy_container_app ? (
+    "https://${azurerm_container_app.demo[0].ingress[0].fqdn}"
+  ) : null
 }
