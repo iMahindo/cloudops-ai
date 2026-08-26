@@ -5,3 +5,11 @@ resource "azurerm_user_assigned_identity" "app" {
 
   tags = local.common_tags
 }
+
+resource "azurerm_user_assigned_identity" "github_acr_publisher" {
+  name                = local.github_acr_publisher_identity_name
+  resource_group_name = local.resource_group_name
+  location            = var.location
+
+  tags = local.common_tags
+}
