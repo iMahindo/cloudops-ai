@@ -10,18 +10,42 @@ permissions:
   contents: read
   id-token: write #Allow the job to request a signed GitHub OIDC token
 
+env:
+  IMAGE_REFERENCE: ${{ vars.ACR_LOGIN_SERVER }}/cloudops-ai:${{ github.sha }} #image name with repository and sha
+
 jobs:
-  authentication:
-    name: Verify Azure OIDC authentication
+  publish:
+    name: Build and publish application image
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
 
     steps:
+      #download repository
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      #Set up docker buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      #Login to Azure
       - name: Log in to Azure with OIDC
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }} #created in github repository secrets
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      # Verify auth
       - name: Verify authentication identity type
         run: az account show --query "user.type" --output tsv
+      # Configure Docker to use the temporary Azure identity with ACR
+      - name: Log Docker in to Azure Container Registry
+        run: az acr login --name "${{ vars.ACR_NAME }}" #created in github repository variables
+      # Build the image
+      - name: Build the application image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: ${{ env.IMAGE_REFERENCE }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
