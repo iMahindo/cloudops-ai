@@ -1,0 +1,27 @@
+name: CD - Publish application image
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: #Allow manual execution
+
+permissions:
+  contents: read
+  id-token: write #Allow the job to request a signed GitHub OIDC token
+
+jobs:
+  authentication:
+    name: Verify Azure OIDC authentication
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Log in to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }} #created in github repository secrets
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Verify authentication identity type
+        run: az account show --query "user.type" --output tsv
