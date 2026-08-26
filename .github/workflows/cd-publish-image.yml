@@ -45,13 +45,16 @@ jobs:
       # Configure Docker to use the temporary Azure identity with ACR
       - name: Log Docker in to Azure Container Registry
         run: az acr login --name "${{ vars.ACR_NAME }}" #created in github repository variables
-      # Build the image
+      # Build the image and publish it
       - name: Build the application image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
-          push: false
+          push: true
           tags: ${{ env.IMAGE_REFERENCE }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      # Confirm that ACR exposes the image for the exact commit SHA
+      - name: Verify published image
+        run: docker buildx imagetools inspect "${{ env.IMAGE_REFERENCE }}"
