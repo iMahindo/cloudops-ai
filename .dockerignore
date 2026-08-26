@@ -11,3 +11,4 @@ logs
 .vscode
 .ruff_cache/
 terraform/
+knowledge/

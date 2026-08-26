@@ -115,4 +115,19 @@ jobs:
 
       - name: Validate demo
         run: terraform -chdir=terraform/demo validate
+  #workflow validation
+  workflow-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      # Download the repository so actionlint can inspect the workflow files
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # Statically validate every GitHub Actions workflow
+      - name: Validate GitHub Actions workflows
+        uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: -color
 

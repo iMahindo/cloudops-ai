@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+    paths:
+      - app/**
+      - Dockerfile
+      - requirements.txt
+      - .dockerignore
+      - .github/workflows/cd-publish-image.yml
   workflow_dispatch: #Allow manual execution
 
 permissions:
