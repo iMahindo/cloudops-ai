@@ -41,3 +41,6 @@ override.tf.json
 .terraformrc
 terraform.rc
 backend.hcl
+
+#Contains only the non sensitive deployed image tag
+!terraform/demo/deployment.auto.tfvars
