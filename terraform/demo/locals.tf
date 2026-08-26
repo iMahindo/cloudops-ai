@@ -11,6 +11,8 @@ locals {
   container_app_name              = "ca-cloudopsai-demo"
   container_name                  = "cloudops-ai"
 
+  github_acr_publisher_identity_name = "id-github-cloudopsai-publisher" #identity used to publish images in acr by github actions
+
   groq_api_key_secret_name   = "groq-api-key"
   gemini_api_key_secret_name = "gemini-api-key"
   qdrant_api_key_secret_name = "qdrant-api-key"

@@ -24,3 +24,21 @@ output "container_app_url" {
     "https://${azurerm_container_app.demo[0].ingress[0].fqdn}"
   ) : null
 }
+
+output "github_acr_publisher_client_id" {
+  description = "Client ID of the managed identity used by GitHub Actions to publish images"
+  value       = azurerm_user_assigned_identity.github_acr_publisher.client_id
+  sensitive   = true
+}
+
+output "azure_tenant_id" {
+  description = "Microsoft Entra tenant ID used by GitHub Actions authentication"
+  value       = data.azurerm_client_config.current.tenant_id
+  sensitive   = true
+}
+
+output "azure_subscription_id" {
+  description = "Azure subscription ID used by GitHub Actions authentication"
+  value       = data.azurerm_client_config.current.subscription_id
+  sensitive   = true
+}
