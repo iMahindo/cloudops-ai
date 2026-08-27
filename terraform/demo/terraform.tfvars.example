@@ -1,6 +1,6 @@
 subscription_id = "00000000-0000-0000-0000-000000000000"
 location        = "Spain Central"
 key_vault_secrets_officer_object_id = "00000000-0000-0000-0000-000000000000"
-container_image_tag = "replace-with-git-commit-sha"
 qdrant_host = "replace-with-qdrant-cloud-host"
 deploy_container_app = false
+# container_image_tag is supplied at runtime by CD through TF_VAR_container_image_tag.

@@ -125,7 +125,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      # Statically validate every GitHub Actions workflow
+      # Validate policy script
+      - name: Validate deployment policy script syntax
+        run: bash -n .github/scripts/validate-terraform-deployment-plan.sh
+
+      # Validate every GitHub Actions workflow
       - name: Validate GitHub Actions workflows
         uses: docker://rhysd/actionlint:1.7.12
         with:
