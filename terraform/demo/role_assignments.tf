@@ -25,3 +25,24 @@ resource "azurerm_role_assignment" "github_acr_publisher_push" {
   principal_id         = azurerm_user_assigned_identity.github_acr_publisher.principal_id
   principal_type       = "ServicePrincipal"
 }
+
+resource "azurerm_role_assignment" "github_deployer_tfstate" {
+  scope                = data.azurerm_storage_account.tfstate.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.github_deployer.principal_id
+  principal_type       = "ServicePrincipal"
+}
+
+resource "azurerm_role_assignment" "github_deployer_demo_reader" {
+  scope                = azurerm_resource_group.demo.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_user_assigned_identity.github_deployer.principal_id
+  principal_type       = "ServicePrincipal"
+}
+
+resource "azurerm_role_assignment" "github_deployer_container_apps_contributor" {
+  scope                = azurerm_resource_group.demo.id
+  role_definition_name = "Container Apps Contributor"
+  principal_id         = azurerm_user_assigned_identity.github_deployer.principal_id
+  principal_type       = "ServicePrincipal"
+}

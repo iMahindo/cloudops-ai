@@ -12,6 +12,11 @@ locals {
   container_name                  = "cloudops-ai"
 
   github_acr_publisher_identity_name = "id-github-cloudopsai-publisher" #identity used to publish images in acr by github actions
+  github_deployer_identity_name      = "id-github-cloudopsai-deployer"  #identity used to deploy the images in container app
+
+  tfstate_resource_group_name  = "cloudopsai-tfstate"
+  tfstate_storage_account_name = "stcloudopsaistated6eda8"
+  tfstate_container_name       = "tfstate"
 
   groq_api_key_secret_name   = "groq-api-key"
   gemini_api_key_secret_name = "gemini-api-key"
