@@ -46,3 +46,10 @@ resource "azurerm_role_assignment" "github_deployer_container_apps_contributor" 
   principal_id         = azurerm_user_assigned_identity.github_deployer.principal_id
   principal_type       = "ServicePrincipal"
 }
+
+resource "azurerm_role_assignment" "github_deployer_tfstate_reader" {
+  scope                = data.azurerm_storage_account.tfstate.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_user_assigned_identity.github_deployer.principal_id
+  principal_type       = "ServicePrincipal"
+}
