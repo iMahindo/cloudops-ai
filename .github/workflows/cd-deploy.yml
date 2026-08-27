@@ -71,7 +71,7 @@ jobs:
         env:
           RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
           CONTAINER_APP_NAME: ${{ vars.CONTAINER_APP_NAME }}
-          EXPECTED_IMAGE_PREFIX: ${{ vars.ACR_LOGIN_SERVER }}/cloudops-ai:
+          EXPECTED_IMAGE_PREFIX: "${{ vars.ACR_LOGIN_SERVER }}/cloudops-ai:"
         run: |
           DEPLOYED_IMAGE="$(az containerapp show \
             --resource-group "${RESOURCE_GROUP}" \
