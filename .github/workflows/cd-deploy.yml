@@ -1,7 +1,13 @@
 name: CD - Deploy application to Azure
 
 on:
-  workflow_dispatch: # Allow a person to start the deployment manually from GitHub
+  workflow_run: # Execute only when the publish workflow is completed
+    workflows:
+      - CD - Publish application image
+    types:
+      - completed
+    branches:
+      - main
 
 permissions:
   contents: read # Allow the workflow to download the repository
@@ -13,18 +19,34 @@ concurrency: #Simultany executions control
 
 jobs:
   deployment:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }} #Only execute the job if the pusblish workflows ends OK
     name: Deploy CloudOps AI to Azure
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: azure-demo
+    env:
+      IMAGE_TAG: ${{ github.event.workflow_run.head_sha }} #Get the commit sha published
     steps:
       # Dowload the respository
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
       
+      # Validate the image tag sha format
+      - name: Validate image tag
+        shell: bash
+        run: |
+          if [[ ! "${IMAGE_TAG}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::IMAGE_TAG must be a full 40-character lowercase Git commit SHA."
+            exit 1
+          fi
+
+          echo "Validated image tag: ${IMAGE_TAG}"
+
       # Log in github into Azure
       - name: Log in to Azure with OIDC
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -33,3 +55,18 @@ jobs:
       # Confirm authentication
       - name: Verify Azure authenticacion identity type
         run: az account show --query "user.type" --output tsv
+
+      # Install terraform in gitHub VM
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.15.8
+          terraform_wrapper: false
+
+      # Configure Terraform init
+      - name: Initialize Terraform
+        run: terraform -chdir=terraform/demo init -input=false -lockfile=readonly
+
+      # Check terraform
+      - name: Validate Terraform configuration
+        run: terraform -chdir=terraform/demo validate

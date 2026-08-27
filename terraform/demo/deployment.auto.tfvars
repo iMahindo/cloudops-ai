@@ -1,1 +1,0 @@
-container_image_tag = "4eddd7c15c4930f397978be32986657be026e08f"
