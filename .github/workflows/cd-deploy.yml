@@ -1,0 +1,35 @@
+name: CD - Deploy application to Azure
+
+on:
+  workflow-dispatch # Allow a person to start the deployment manually from GitHub
+
+permissions:
+  contents: read # Allow the workflow to download the repository
+  id-token: write # Allow GitHub to generate the temporary OIDC token
+
+concurrency: #Simultany executions control
+  group: azure-demo-deployment
+  cancel-in-progress: false
+
+jobs:
+  deployment:
+    name: Deploy CloudOps AI to Azure
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: azure-demo
+    steps:
+      # Dowload the respository
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      
+      # Log in github into Azure
+      - name: Log in to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      
+      # Confirm authentication
+      - name: Verify Azure authenticacion identity type
+        run: az account show --query "user.type" --output tsv
