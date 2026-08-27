@@ -42,3 +42,9 @@ output "azure_subscription_id" {
   value       = data.azurerm_client_config.current.subscription_id
   sensitive   = true
 }
+
+output "github_deployer_client_id" {
+  description = "Client ID used by GitHub Actions to deploy through Azure OIDC"
+  value       = azurerm_user_assigned_identity.github_deployer.client_id
+  sensitive   = true
+}

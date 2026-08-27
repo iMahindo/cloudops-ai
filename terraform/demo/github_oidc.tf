@@ -7,3 +7,12 @@ resource "azurerm_federated_identity_credential" "github_acr_publisher_main" { #
   issuer   = "https://token.actions.githubusercontent.com"                        #github doc
   subject  = "repo:iMahindo@309682860/cloudops-ai@1315907876:ref:refs/heads/main" #github repo
 }
+
+resource "azurerm_federated_identity_credential" "github_deployer_environment" {
+  name                      = "github_azure_demo_deployer"
+  user_assigned_identity_id = azurerm_user_assigned_identity.github_deployer.id
+
+  audience = ["api://AzureADTokenExchange"]
+  issuer   = "https://token.actions.githubusercontent.com"
+  subject  = "repo:iMahindo@309682860/cloudops-ai@1315907876:environment:azure-demo"
+}
