@@ -125,9 +125,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      # Validate policy script
-      - name: Validate deployment policy script syntax
-        run: bash -n .github/scripts/validate-terraform-deployment-plan.sh
+      # Validate scripts
+      - name: Validate deployment scripts syntax
+        run: bash -n .github/scripts/*.sh
 
       # Validate every GitHub Actions workflow
       - name: Validate GitHub Actions workflows

@@ -60,3 +60,10 @@ resource "azurerm_role_assignment" "github_deployer_app_identity_operator" {
   principal_id         = azurerm_user_assigned_identity.github_deployer.principal_id
   principal_type       = "ServicePrincipal"
 }
+
+resource "azurerm_role_assignment" "github_acr_publisher_delete" {
+  scope                = azurerm_container_registry.demo.id
+  role_definition_name = "AcrDelete"
+  principal_id         = azurerm_user_assigned_identity.github_acr_publisher.principal_id
+  principal_type       = "ServicePrincipal"
+}
