@@ -53,3 +53,10 @@ resource "azurerm_role_assignment" "github_deployer_tfstate_reader" {
   principal_id         = azurerm_user_assigned_identity.github_deployer.principal_id
   principal_type       = "ServicePrincipal"
 }
+
+resource "azurerm_role_assignment" "github_deployer_app_identity_operator" {
+  scope                = azurerm_user_assigned_identity.app.id
+  role_definition_name = "Managed Identity Operator"
+  principal_id         = azurerm_user_assigned_identity.github_deployer.principal_id
+  principal_type       = "ServicePrincipal"
+}
