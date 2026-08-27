@@ -1,7 +1,7 @@
 name: CD - Deploy application to Azure
 
 on:
-  workflow-dispatch: # Allow a person to start the deployment manually from GitHub
+  workflow_dispatch: # Allow a person to start the deployment manually from GitHub
 
 permissions:
   contents: read # Allow the workflow to download the repository
