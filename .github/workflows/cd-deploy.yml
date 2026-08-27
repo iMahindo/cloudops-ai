@@ -32,6 +32,8 @@ jobs:
       TF_VAR_container_image_tag: ${{ github.event.workflow_run.head_sha }}
       TF_VAR_qdrant_host: ${{ secrets.QDRANT_HOST }}
       TF_VAR_deploy_container_app: "true"
+    outputs:
+      previous_image_tag: ${{ steps.capture_previous_image.outputs.tag }}
     steps:
       # Dowload the respository
       - name: Checkout repository
@@ -61,6 +63,36 @@ jobs:
       # Confirm authentication
       - name: Verify Azure authenticacion identity type
         run: az account show --query "user.type" --output tsv
+
+      # Capture the healthy image currently deployed before replacing it
+      - name: Capture previous deployed image
+        id: capture_previous_image
+        shell: bash
+        env:
+          RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          CONTAINER_APP_NAME: ${{ vars.CONTAINER_APP_NAME }}
+          EXPECTED_IMAGE_PREFIX: "${{ vars.ACR_LOGIN_SERVER }}/cloudops-ai:"
+        run: |
+          DEPLOYED_IMAGE="$(az containerapp show \
+            --resource-group "${RESOURCE_GROUP}" \
+            --name "${CONTAINER_APP_NAME}" \
+            --query "properties.template.containers[0].image" \
+            --output tsv)"
+
+          if [[ "${DEPLOYED_IMAGE}" != "${EXPECTED_IMAGE_PREFIX}"* ]]; then
+            echo "::error::The currently deployed image does not belong to the expected ACR repository."
+            exit 1
+          fi
+
+          PREVIOUS_IMAGE_TAG="${DEPLOYED_IMAGE#"${EXPECTED_IMAGE_PREFIX}"}"
+
+          if [[ ! "${PREVIOUS_IMAGE_TAG}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::The currently deployed image tag is not a full Git commit SHA."
+            exit 1
+          fi
+
+          echo "tag=${PREVIOUS_IMAGE_TAG}" >> "${GITHUB_OUTPUT}"
+          echo "Captured previous healthy image tag: ${PREVIOUS_IMAGE_TAG}"
 
       # Install terraform in gitHub VM
       - name: Set up Terraform
@@ -112,3 +144,42 @@ jobs:
       # Validate terraform and azure are sync
       - name: Verify terraform has no changes
         run: terraform -chdir=terraform/demo plan -input=false -lock-timeout=5m -detailed-exitcode -no-color
+
+  cleanup:
+    name: Retain current and previous healthy images
+    needs:
+      - deployment
+    if: ${{ needs.deployment.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ACR_NAME: ${{ vars.ACR_NAME }}
+      IMAGE_REPOSITORY: cloudops-ai
+      CURRENT_IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+      PREVIOUS_IMAGE_TAG: ${{ needs.deployment.outputs.previous_image_tag }}
+
+    steps:
+      # Download the cleanup script from the same commit that was deployed
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      # Use the repository publisher identity for ACR cleanup
+      - name: Log in to Azure with publisher OIDC identity
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Delete SHA-tagged images except the current and previous healthy versions
+      - name: Remove old application images
+        shell: bash
+        run: >
+          bash
+          .github/scripts/cleanup-acr-images.sh
+          "${ACR_NAME}"
+          "${IMAGE_REPOSITORY}"
+          "${CURRENT_IMAGE_TAG}"
+          "${PREVIOUS_IMAGE_TAG}"
