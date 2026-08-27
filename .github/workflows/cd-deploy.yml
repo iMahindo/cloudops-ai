@@ -26,6 +26,12 @@ jobs:
     environment: azure-demo
     env:
       IMAGE_TAG: ${{ github.event.workflow_run.head_sha }} #Get the commit sha published
+      #tfvars variables values for github
+      TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_key_vault_secrets_officer_object_id: ${{ secrets.KEY_VAULT_SECRETS_OFFICER_OBJECT_ID }}
+      TF_VAR_container_image_tag: ${{ github.event.workflow_run.head_sha }}
+      TF_VAR_qdrant_host: ${{ secrets.QDRANT_HOST }}
+      TF_VAR_deploy_container_app: "true"
     steps:
       # Dowload the respository
       - name: Checkout repository
@@ -70,3 +76,39 @@ jobs:
       # Check terraform
       - name: Validate Terraform configuration
         run: terraform -chdir=terraform/demo validate
+
+      # terraform plan
+      - name: Create terraform deployment plan
+        run: terraform -chdir=terraform/demo plan -input=false -lock-timeout=5m -out=deployment.tfplan
+
+      # Convert the saved plan into JSON for automated policy validation
+      - name: Convert Terraform plan to JSON
+        run: terraform -chdir=terraform/demo show -json deployment.tfplan > terraform/demo/deployment-plan.json
+
+      # Execute the repository policy that limits application deployments
+      - name: Validate Terraform deployment plan
+        shell: bash
+        run: bash .github/scripts/validate-terraform-deployment-plan.sh terraform/demo/deployment-plan.json
+
+      # Apply the saved plan
+      - name: Apply Terraform deployment plan
+        run: terraform -chdir=terraform/demo apply -input=false deployment.tfplan
+
+      # Confirm application is healthy after deployment
+      - name: Validate application health
+        run: >
+          curl
+          --fail-with-body
+          --show-error
+          --silent
+          --retry 24
+          --retry-delay 5
+          --retry-connrefused
+          --retry-all-errors
+          --retry-max-time 180
+          --max-time 10
+          "${{ vars.CONTAINER_APP_URL }}/health"
+
+      # Validate terraform and azure are sync
+      - name: Verify terraform has no changes
+        run: terraform -chdir=terraform/demo plan -input=false -lock-timeout=5m -detailed-exitcode -no-color
