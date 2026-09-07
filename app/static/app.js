@@ -49,6 +49,27 @@ function scrollChatToBottom() {
     chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
+function renderMarkdown(element, content) {
+    if (
+        typeof marked === "undefined" ||
+        typeof DOMPurify === "undefined"
+    ) {
+        element.textContent = content;
+        return;
+    }
+
+    const renderedContent = marked.parse(content, {
+        gfm: true,
+        breaks: true,
+    });
+
+    element.innerHTML = DOMPurify.sanitize(renderedContent, {
+        USE_PROFILES: {
+            html: true,
+        },
+    });
+}
+
 sendButton.addEventListener("click", async () => {
     const question = questionInput.value.trim();
 
@@ -109,7 +130,7 @@ sendButton.addEventListener("click", async () => {
 
         const data = await response.json();
 
-        thinkingText.textContent = data.answer;
+        renderMarkdown(thinkingText, data.answer);
 
         if (data.sources && data.sources.length > 0) {
             const sourcesContainer = document.createElement("div");
