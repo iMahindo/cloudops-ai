@@ -330,3 +330,4 @@ Relaciona las solicitudes, las respuestas y las estructuras de datos utilizadas 
 
 - [Guía de uso de la demo](docs/demo_guide.md)
 - [Uso de la IA durante el desarrollo](docs/uso_de_ia.md)
+- [Gestion y entrega](docs/gestion_y_entrega.md)
