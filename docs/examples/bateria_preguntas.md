@@ -9,7 +9,7 @@ Las respuestas se basan en los siguientes documentos de ejemplo:
 
 La batería incluye consultas que requieren recuperar contexto, preguntas conversacionales que pueden responderse sin consultar Qdrant y algunos casos pensados para comprobar cómo se comporta el sistema cuando la información solicitada no está disponible.
 
-Documento Scrum
+## Documento Scrum
 1. ¿Cuánto dura un sprint en CloudOps AI?
 2. ¿A qué hora comienza la Sprint Planning?
 3. ¿Cuánto puede durar como máximo la Daily Scrum?
@@ -25,7 +25,8 @@ Documento Scrum
 13. ¿Cuándo puede cancelar un sprint el Product Owner?
 14. ¿Se puede presentar trabajo incompleto durante la Sprint Review?
 15. ¿Se utiliza la velocidad para comparar equipos o evaluar personas?
-Documento Terraform
+
+## Documento Terraform
 1. ¿Cuál es el flujo obligatorio antes de ejecutar un terraform apply?
 2. ¿Qué hace terraform init?
 3. ¿terraform init crea recursos en Azure?
@@ -46,8 +47,9 @@ Documento Terraform
 18. ¿Por qué se debe versionar el archivo de bloqueo de providers?
 19. ¿Qué validaciones debe ejecutar CI para un cambio de Terraform?
 20. ¿Qué debe hacerse si no se entiende completamente el resultado de un plan?
-Preguntas que combinan ambos documentos
-Estas son especialmente útiles para demostrar que el RAG puede recuperar información de distintas fuentes:
+
+## Preguntas que combinan ambos documentos
+
 1. ¿Qué validaciones deben completarse para que una historia de Terraform se considere terminada?
 2. ¿Puede entrar en un sprint una tarea de infraestructura que todavía tiene decisiones críticas pendientes?
 3. ¿Qué proceso debe seguir el equipo antes de aplicar un cambio urgente de Terraform?
