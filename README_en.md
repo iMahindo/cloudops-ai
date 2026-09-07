@@ -326,3 +326,8 @@ The lower section shows how those results are used within LangGraph, the tool th
 Shows the relationships between requests, responses, and data structures used during ingestion and RAG execution.
 
 ![Schemas and data flows](diagramas_arquitectura/Schemas_workflow.png)
+
+## Additional documentation
+
+- [Demo usage guide — Spanish](docs/demo_guide.md)
+- [Use of AI during development — Spanish](docs/uso_de_ia.md)
