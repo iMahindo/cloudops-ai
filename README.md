@@ -1,5 +1,7 @@
 # CloudOps AI
 
+Español | [English](README_en.md)
+
 Asistente de IA diseñado para la nube que transforma documentación operativa en respuestas consultables y respaldadas por sus fuentes.
 
 El proyecto cubre el ciclo completo de desarrollo, validación, despliegue y operación: aplicación RAG, contenerización, observabilidad, infraestructura como código y CI/CD automatizado en Azure mediante GitHub Actions y autenticación federada OIDC.
