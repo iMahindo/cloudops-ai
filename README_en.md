@@ -330,4 +330,9 @@ Shows the relationships between requests, responses, and data structures used du
 ## Additional documentation
 
 - [Demo usage guide — Spanish](docs/demo_guide.md)
+    The RAG workflow can be tested using the [sample question set](docs/examples/bateria_preguntas.md), based on the Terraform and Scrum documents included in the repository. (only in Spanish)
 - [Use of AI during development — Spanish](docs/uso_de_ia.md)
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).

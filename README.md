@@ -329,5 +329,10 @@ Relaciona las solicitudes, las respuestas y las estructuras de datos utilizadas 
 ## Documentación adicional
 
 - [Guía de uso de la demo](docs/demo_guide.md)
+  Para probar el flujo RAG puede utilizarse la [batería de preguntas de ejemplo](docs/examples/bateria_preguntas.md), basada en los documentos de Terraform y Scrum incluidos en el repositorio.
 - [Uso de la IA durante el desarrollo](docs/uso_de_ia.md)
 - [Gestion y entrega](docs/gestion_y_entrega.md)
+
+## Licencia
+
+Este proyecto se distribuye bajo la licencia [MIT](LICENSE).
