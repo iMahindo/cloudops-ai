@@ -25,7 +25,6 @@ El proyecto incluye un entorno local completo con Docker Compose y observabilida
 - Publicación y despliegue automatizados mediante GitHub Actions y autenticación OIDC.
 
 
-
 ## Cómo funciona
 
 CloudOps AI separa la incorporación del conocimiento y la resolución de consultas en dos flujos relacionados.
@@ -326,3 +325,8 @@ La parte inferior muestra cómo se utilizan esos resultados dentro de LangGraph,
 Relaciona las solicitudes, las respuestas y las estructuras de datos utilizadas durante la ingesta y la ejecución del flujo RAG.
 
 ![Esquemas y flujos de datos](diagramas_arquitectura/Schemas_workflow.png)
+
+## Documentación adicional
+
+- [Guía de uso de la demo](docs/demo_guide.md)
+- [Uso de la IA durante el desarrollo](docs/uso_de_ia.md)
