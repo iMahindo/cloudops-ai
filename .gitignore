@@ -19,8 +19,8 @@ Thumbs.db
 #Documentation tests
 knowledge/tests/
 
-#documentation
-diagramas_arquitectura
+#Documentation
+diagramas_arquitectura/*.excalidraw
 
 #ruff cache
 .ruff_cache/
