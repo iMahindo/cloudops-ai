@@ -29,6 +29,9 @@ El proyecto incluye un entorno local completo con Docker Compose y observabilida
 
 CloudOps AI separa la incorporación del conocimiento y la resolución de consultas en dos flujos relacionados.
 
+- [Guía de uso de la demo](docs/demo_guide.md)
+  Para probar el flujo RAG puede utilizarse la [batería de preguntas de ejemplo](docs/examples/bateria_preguntas.md), basada en los documentos de Terraform y Scrum incluidos en el repositorio.
+
 ### Ingesta de conocimiento
 
 La aplicación recibe contenido desde archivos, directorios locales o páginas de Notion y lo transforma en un formato documental común. Después, divide cada documento en fragmentos, añade los metadatos necesarios y genera sus representaciones vectoriales (embeddings) antes de almacenarlas en Qdrant.
